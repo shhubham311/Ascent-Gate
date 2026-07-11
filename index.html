@@ -935,6 +935,12 @@ function load() {
   } catch (e) { return defaultState(); }
 }
 
+function redactedState() {
+  const clone = JSON.parse(JSON.stringify(S));
+  if (clone.settings && clone.settings.gist) clone.settings.gist.token = '';
+  return clone;
+}
+
 let saveT = null;
 function save() {
   clearTimeout(saveT);
@@ -2213,7 +2219,7 @@ function bumpTodayLect(delta) {
 }
 
 function doExport() {
-  const blob = new Blob([JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: redactedState() }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `ascent-backup-${todayISO()}.json`;
@@ -2394,11 +2400,13 @@ document.addEventListener('change', e => {
         if (!d) throw new Error('shape');
         confirmModal('Import backup?', 'This replaces everything currently in the tracker with the backup contents.', 'Import', () => {
           const base = defaultState();
+          const keepToken = (S.settings.gist && S.settings.gist.token) || '';
           S = { v: 1,
             settings: Object.assign(base.settings, d.settings || {}),
             subjects: Array.isArray(d.subjects) ? d.subjects : base.subjects,
             logs: d.logs || {}, mocks: Array.isArray(d.mocks) ? d.mocks : [],
             planChecks: d.planChecks || {}, flags: Object.assign(base.flags, d.flags || {}, { welcome: false }) };
+          if (!S.settings.gist.token) S.settings.gist.token = keepToken;
           save(); applyTheme(); go('dashboard'); toast('Backup imported');
         });
       } catch (err) { toast("That file isn't a valid Ascent backup."); }
@@ -3014,7 +3022,7 @@ async function gistPush() {
   const g = S.settings.gist;
   if (!g.token) { toast('Add a GitHub token in Settings first.'); return; }
   const body = { description: 'Ascent GATE tracker backup', public: false,
-                 files: { 'ascent.json': { content: JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 1) } } };
+                 files: { 'ascent.json': { content: JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: redactedState() }, null, 1) } } };
   try {
     const r = await fetch(g.id ? `${GH}/gists/${g.id}` : `${GH}/gists`,
       { method: g.id ? 'PATCH' : 'POST', headers: ghHead(), body: JSON.stringify(body) });
@@ -3308,7 +3316,7 @@ function b64dec(str) {
   return out;
 }
 async function packState() {
-  const json = JSON.stringify({ app: 'ascent-gate', version: 1, data: S });
+  const json = JSON.stringify({ app: 'ascent-gate', version: 1, data: redactedState() });
   const raw = new TextEncoder().encode(json);
   if (typeof CompressionStream === 'undefined') return 'r' + b64enc(raw);
   const cs = new CompressionStream('gzip');
@@ -3331,6 +3339,7 @@ async function unpackState(payload) {
 }
 function adoptState(d, msg) {
   const base = defaultState();
+  const keepToken = (S.settings.gist && S.settings.gist.token) || '';
   S = { v: 1,
     settings: Object.assign(base.settings, d.settings || {}),
     subjects: Array.isArray(d.subjects) && d.subjects.length ? d.subjects : base.subjects,
@@ -3338,6 +3347,7 @@ function adoptState(d, msg) {
     planChecks: d.planChecks || {}, planEdits: d.planEdits || {}, planRepeat: d.planRepeat || [],
     paceHist: d.paceHist || {}, timer: null,
     flags: Object.assign(base.flags, d.flags || {}, { welcome: false }) };
+  if (!S.settings.gist.token) S.settings.gist.token = keepToken;
   save(); applyTheme(); go('dashboard'); toast(msg || 'Synced — this device is up to date.');
 }
 async function syncLinkModal() {
