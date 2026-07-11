@@ -1,0 +1,3379 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ascent · GATE CSE &amp; DA Tracker</title>
+<meta name="description" content="Ascent — a free, offline-friendly GATE CSE & DA preparation command center. Countdown, required daily pace, GO Classes lecture tracking, smart phase-based planning, daily logs, mocks and more.">
+<meta id="meta-theme" name="theme-color" content="#0B0E17">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2.5 20 10 5.5l4.5 8.5L17 9.5 21.5 20Z' fill='%237C93FF'/><path d='M11.5 20l5.3-10.2L21.5 20Z' fill='%2334D3B1'/></svg>">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Ascent — GATE CSE & DA command center
+   Single-file app · zero dependencies · dark/light · responsive
+   ============================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-disp:'Space Grotesk','Inter',system-ui,sans-serif;
+  --acc:#7C93FF; --acc2:#34D3B1;
+  --cse:#7C93FF; --da:#34D3B1;
+  --ok:#3DDC97; --warn:#FFC554; --bad:#FF7A88;
+  --r:16px; --r-sm:10px;
+  --pad:18px;
+}
+
+html[data-theme="dark"]{
+  --bg:#0B0E17; --bg2:#0E1220;
+  --card:#121729; --card2:#171D33;
+  --border:#232B45; --border2:#2C3555;
+  --text:#E9EDF8; --muted:#8C96B2; --faint:#5E6883;
+  --glow:radial-gradient(900px 420px at 20% -10%, rgba(124,147,255,.16), transparent 60%),
+         radial-gradient(700px 380px at 90% -10%, rgba(52,211,177,.10), transparent 55%);
+  --shadow:0 8px 28px rgba(3,6,18,.45);
+  --input-bg:#0E1322;
+  --hover:rgba(255,255,255,.045);
+  color-scheme:dark;
+}
+html[data-theme="light"]{
+  --bg:#F3F5FB; --bg2:#EDF0F8;
+  --card:#FFFFFF; --card2:#F7F9FF;
+  --border:#E2E7F3; --border2:#CBD3E8;
+  --text:#141A2A; --muted:#5C6580; --faint:#9AA3BC;
+  --glow:radial-gradient(900px 420px at 20% -10%, rgba(124,147,255,.14), transparent 60%),
+         radial-gradient(700px 380px at 90% -10%, rgba(52,211,177,.10), transparent 55%);
+  --shadow:0 8px 24px rgba(22,32,66,.08);
+  --input-bg:#FFFFFF;
+  --hover:rgba(20,26,42,.045);
+  color-scheme:light;
+}
+
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-ui);
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px; line-height:1.5;
+  min-height:100vh;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background:var(--glow); z-index:0;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit;color:inherit}
+img,svg{display:block}
+::selection{background:rgba(124,147,255,.35)}
+
+.ic{width:18px;height:18px;flex:none}
+.disp{font-family:var(--font-disp);letter-spacing:-.02em}
+.tiny{font-size:.78rem}
+.small{font-size:.86rem}
+.muted{color:var(--muted)}
+.center{text-align:center}
+.mt6{margin-top:6px}
+.spacer{flex:1}
+.ok-t{color:var(--ok);font-weight:600}
+.bad-t{color:var(--bad);font-weight:600}
+
+/* ---------- app shell ---------- */
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh;position:relative;z-index:1}
+
+.sidebar{
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;gap:8px;
+  padding:22px 14px 16px;
+  border-right:1px solid var(--border);
+  background:linear-gradient(180deg,var(--bg2),var(--bg));
+}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 8px 18px}
+.brand-logo{width:34px;height:34px;flex:none;filter:drop-shadow(0 4px 10px rgba(124,147,255,.35))}
+.brand b{font-family:var(--font-disp);font-size:1.18rem;letter-spacing:-.01em;display:block;line-height:1.1}
+.brand span{font-size:.72rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+
+.side-nav{display:flex;flex-direction:column;gap:3px}
+.nav-btn{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border-radius:11px;
+  color:var(--muted);font-weight:500;font-size:.92rem;
+  transition:background .15s,color .15s;
+}
+.nav-btn:hover{background:var(--hover);color:var(--text)}
+.nav-btn.active{
+  background:linear-gradient(135deg,rgba(124,147,255,.16),rgba(52,211,177,.10));
+  color:var(--text);
+  box-shadow:inset 0 0 0 1px var(--border2);
+}
+.nav-btn.active .ic{color:var(--acc)}
+
+.side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:8px 6px 0;border-top:1px solid var(--border)}
+.save-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);margin-left:auto;transition:background .3s,box-shadow .3s}
+.save-dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.foot-note{font-size:.7rem;color:var(--faint)}
+
+/* topbar + bottom nav (mobile) */
+.topbar{display:none}
+.bottomnav{display:none}
+
+.main{padding:30px 34px 60px;min-width:0}
+
+/* ---------- view scaffolding ---------- */
+.view{display:none;animation:fadein .25s ease}
+.view.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.vhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.vhead h1{font-family:var(--font-disp);font-size:1.62rem;font-weight:700;letter-spacing:-.02em}
+.vsub{color:var(--muted);font-size:.88rem;margin-top:2px;max-width:640px}
+.vact{display:flex;gap:10px}
+
+/* ---------- grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}
+.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  min-width:0;
+  position:relative;
+}
+.card.pad{padding:var(--pad)}
+.pad-h{padding:var(--pad) var(--pad) 10px}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem}
+.card-t .ic{color:var(--acc);width:17px;height:17px}
+
+/* ---------- buttons & inputs ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 15px;border-radius:11px;font-weight:600;font-size:.88rem;
+  background:var(--card2);border:1px solid var(--border2);
+  transition:transform .12s,box-shadow .15s,background .15s,border-color .15s;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--acc)}
+.btn:active{transform:none}
+.btn .ic{width:16px;height:16px}
+.btn.primary{
+  background:linear-gradient(135deg,#7C93FF,#5EC8F2);
+  border-color:transparent;color:#0A0E1D;
+}
+.btn.primary:hover{box-shadow:0 6px 18px rgba(124,147,255,.35)}
+.btn.danger{color:var(--bad)}
+.btn.danger:not(.ghost){background:rgba(255,122,136,.12);border-color:rgba(255,122,136,.4)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 11px;font-size:.8rem;border-radius:9px}
+
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:9px;color:var(--muted);
+  transition:background .15s,color .15s;
+}
+.icon-btn:hover{background:var(--hover);color:var(--text)}
+.icon-btn .ic{width:16px;height:16px}
+
+.input{
+  width:100%;padding:9px 12px;border-radius:10px;
+  background:var(--input-bg);border:1px solid var(--border2);
+  font-size:.9rem;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,147,255,.18)}
+.input.mini{width:64px;padding:5px 8px;font-size:.82rem;text-align:center}
+.input.search{max-width:230px}
+select.input,.input.select{appearance:auto;cursor:pointer;width:auto}
+input[type="date"].input{cursor:pointer}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.field>label{font-size:.76rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.frow{display:flex;align-items:center;gap:12px;min-width:0}
+.frow.g8{gap:10px}
+.frow.wrap{flex-wrap:wrap}
+
+input[type="range"]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;
+  background:linear-gradient(90deg,var(--acc),var(--acc2));outline:none;cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#fff;border:3px solid var(--acc);box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+input[type="range"]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--acc);
+}
+
+/* segmented control */
+.seg{display:inline-flex;gap:3px;padding:3px;background:var(--input-bg);border:1px solid var(--border);border-radius:11px}
+.seg-b{padding:6px 13px;border-radius:8px;font-size:.82rem;font-weight:600;color:var(--muted);transition:background .15s,color .15s;white-space:nowrap}
+.seg-b:hover{color:var(--text)}
+.seg-b.active{background:var(--card2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
+
+/* badges */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:99px;font-size:.72rem;font-weight:700;
+  letter-spacing:.04em;border:1px solid transparent;white-space:nowrap;
+}
+.b-cse{background:rgba(124,147,255,.14);color:var(--cse);border-color:rgba(124,147,255,.4)}
+.b-da{background:rgba(52,211,177,.13);color:var(--da);border-color:rgba(52,211,177,.4)}
+.s-ok{background:rgba(61,220,151,.13);color:var(--ok);border-color:rgba(61,220,151,.4)}
+.s-warn{background:rgba(255,197,84,.13);color:var(--warn);border-color:rgba(255,197,84,.4)}
+.s-bad{background:rgba(255,122,136,.13);color:var(--bad);border-color:rgba(255,122,136,.4)}
+
+/* banner */
+.banner{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:13px;font-size:.87rem;
+  background:linear-gradient(135deg,rgba(124,147,255,.12),rgba(52,211,177,.08));
+  border:1px solid var(--border2);
+}
+.banner .ic{color:var(--acc);flex:none}
+.banner.warn{background:rgba(255,197,84,.1);border-color:rgba(255,197,84,.35)}
+.banner.warn .ic{color:var(--warn)}
+.banner>div{flex:1}
+
+/* ---------- KPIs, bars, rings ---------- */
+.kpi{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.kpi-num{font-family:var(--font-disp);font-size:2.35rem;font-weight:700;letter-spacing:-.03em;line-height:1;background:linear-gradient(120deg,var(--text),var(--muted));-webkit-background-clip:text;background-clip:text}
+.kpi-sub{font-size:.8rem;color:var(--muted)}
+
+.bar{height:8px;border-radius:99px;background:var(--input-bg);border:1px solid var(--border);overflow:hidden;margin:9px 0 7px}
+.bar-f{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .45s cubic-bezier(.22,1,.36,1)}
+
+.ring{position:relative;display:grid;place-items:center;margin:0 auto}
+.ring svg{position:absolute;inset:0}
+.ring-bg{fill:none;stroke:var(--border2);opacity:.55}
+.ring-fg{fill:none;transition:stroke-dashoffset .6s cubic-bezier(.22,1,.36,1)}
+.ring-lb{text-align:center;line-height:1.15;z-index:1}
+.ring-lb b{font-family:var(--font-disp);font-size:1.3rem;letter-spacing:-.02em;display:block}
+.ring-lb span{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.rings{display:flex;justify-content:space-evenly;gap:10px;padding:6px 0 12px;flex-wrap:wrap}
+.mini-ring .ring-lb b{font-size:1.02rem}
+.mini-ring{flex:none}
+
+/* ---------- countdown hero ---------- */
+.count-card{overflow:hidden}
+.count-card::before{
+  content:'';position:absolute;inset:-40% -20% auto;height:150%;pointer-events:none;
+  background:radial-gradient(420px 210px at 30% 0%,var(--cc,rgba(124,147,255,.22)),transparent 65%);
+}
+.count-card[data-count="da"]{--cc:rgba(52,211,177,.2)}
+.count-num{display:flex;align-items:baseline;gap:10px;margin:2px 0 4px;position:relative}
+.count-num .cd-d{font-size:clamp(2.7rem,5.2vw,3.7rem);font-weight:700;line-height:1;letter-spacing:-.035em}
+.count-lbl{font-size:.95rem;color:var(--muted);font-weight:600}
+.count-sub{position:relative}
+.count-done{display:flex;gap:9px;align-items:center;color:var(--muted);font-size:.9rem;padding:14px 0}
+.count-done .ic{color:var(--ok)}
+
+/* chips for time split */
+.split-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.schip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:99px;font-size:.78rem;color:var(--muted);
+  background:var(--input-bg);border:1px solid var(--border);white-space:nowrap;
+}
+.schip i{width:8px;height:8px;border-radius:50%;flex:none}
+.schip b{color:var(--text);font-weight:600}
+.schip.mockday{border-color:rgba(255,143,177,.5)}
+
+/* ---------- today plan ---------- */
+.plan-list{display:flex;flex-direction:column;gap:7px}
+.plan-item{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 13px;border-radius:12px;
+  background:var(--card2);border:1px solid var(--border);
+  transition:border-color .15s,opacity .2s;
+}
+.pi-main{display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer}
+.pi-acts{display:flex;gap:4px;flex:none}
+.pi-acts .icon-btn{width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border2);color:var(--muted)}
+.pi-acts .icon-btn:hover{color:var(--text);border-color:var(--acc)}
+.pi-acts .icon-btn.del:hover{color:var(--bad);border-color:var(--bad)}
+@media (max-width:720px){ .pi-acts .icon-btn{width:36px;height:36px} .plan-item{gap:6px;padding:10px} }
+.plan-item:hover{border-color:var(--border2)}
+.plan-item input{width:17px;height:17px;accent-color:var(--acc2);cursor:pointer;flex:none}
+.pi-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;flex:none;
+  background:linear-gradient(135deg,rgba(124,147,255,.15),rgba(52,211,177,.12));color:var(--acc)}
+.pi-ic .ic{width:15px;height:15px}
+.pi-tx{display:flex;flex-direction:column;min-width:0}
+.pi-tx b{font-size:.88rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi-tx span{font-size:.75rem;color:var(--muted)}
+.plan-item.done{opacity:.5}
+.plan-item.done .pi-tx b{text-decoration:line-through}
+
+/* quick / log forms */
+.qform{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.qform .btn{grid-column:1/-1;justify-content:center}
+.lform{display:flex;flex-direction:column;gap:13px}
+
+/* ---------- heatmap ---------- */
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,var(--hc,14px));grid-auto-columns:var(--hc,14px);gap:3px}
+.hc{width:var(--hc,14px);height:var(--hc,14px);border-radius:3px;background:var(--input-bg);border:1px solid var(--border)}
+.hc.l1{background:rgba(52,211,177,.28);border-color:transparent}
+.hc.l2{background:rgba(52,211,177,.5);border-color:transparent}
+.hc.l3{background:rgba(78,190,255,.72);border-color:transparent}
+.hc.l4{background:var(--acc);border-color:transparent;box-shadow:0 0 6px rgba(124,147,255,.5)}
+.hc.future{opacity:.28}
+.heat-leg{display:inline-flex;align-items:center;gap:4px}
+.heat-leg .hc{width:11px;height:11px;aspect-ratio:auto;display:inline-block}
+
+/* week mini bars */
+.wbars{display:flex;align-items:flex-end;gap:7px;height:66px;margin:12px 2px 4px}
+.wb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
+.wb i{width:100%;max-width:26px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--acc),var(--acc2));min-height:4px}
+.wb i.z{background:var(--input-bg);border:1px solid var(--border)}
+.wb span{font-size:.66rem;color:var(--faint)}
+
+/* stats */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 13px}
+.stat b{font-size:1.25rem;display:block;letter-spacing:-.02em}
+.stat span{font-size:.72rem;color:var(--muted)}
+
+/* ---------- rows (history / mocks) ---------- */
+.rows{display:flex;flex-direction:column;max-height:520px;overflow:auto}
+.row{display:grid;align-items:center;gap:10px;padding:10px var(--pad);border-top:1px solid var(--border);font-size:.86rem}
+.log-r{grid-template-columns:66px 56px 64px 50px minmax(0,1fr) auto}
+.mock-r{grid-template-columns:66px auto minmax(0,1.2fr) 72px 52px minmax(0,1fr) auto}
+.r-date{color:var(--muted);font-weight:600;font-size:.8rem}
+.r-kv{white-space:nowrap}
+.r-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem}
+.r-act{display:flex;gap:2px;justify-content:flex-end}
+
+/* ---------- subjects ---------- */
+.sum-card{margin-bottom:14px;display:flex;flex-direction:column;gap:11px}
+.sum-row{display:flex;align-items:center;gap:13px}
+.sum-bar{flex:1;min-width:120px}
+.sum-bar .bar{margin:0}
+.toolbar{display:flex;align-items:center;gap:11px;margin-bottom:15px;flex-wrap:wrap}
+.subj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.subj{padding:15px 16px 13px;transition:border-color .15s,transform .15s}
+.subj:hover{border-color:var(--border2);transform:translateY(-2px)}
+.subj.inactive{opacity:.6}
+.subj-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px}
+.subj-name{font-weight:650;font-size:.98rem;letter-spacing:-.01em}
+.subj-meta{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap}
+.subj-acts{display:flex;gap:1px;flex:none;opacity:.55;transition:opacity .15s}
+.subj:hover .subj-acts{opacity:1}
+.lect-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stepper{display:inline-flex;align-items:center;gap:2px;background:var(--input-bg);border:1px solid var(--border2);border-radius:11px;padding:3px}
+.step-b{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:var(--muted);transition:background .12s,color .12s}
+.step-b:hover{background:var(--hover);color:var(--text)}
+.step-b .ic{width:14px;height:14px}
+.step-in{width:52px;text-align:center;background:transparent;border:none;outline:none;font-weight:700;font-size:.95rem;font-family:var(--font-disp);-moz-appearance:textfield}
+.step-in::-webkit-outer-spin-button,.step-in::-webkit-inner-spin-button{-webkit-appearance:none}
+.step-t{font-size:.8rem;color:var(--muted);padding-right:8px;white-space:nowrap}
+.subj-pct{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;color:var(--sc,var(--acc))}
+.subj .bar-f{background:var(--sc,var(--acc))}
+.subj-foot{display:flex;align-items:center;gap:7px;margin-top:9px}
+.rev-chips{display:inline-flex;gap:4px}
+.rev-chip{padding:3px 8px;border-radius:7px;font-size:.7rem;font-weight:700;color:var(--faint);background:var(--input-bg);border:1px solid var(--border);transition:all .12s}
+.rev-chip:hover{color:var(--text)}
+.rev-chip.on{background:rgba(255,197,84,.16);border-color:rgba(255,197,84,.55);color:var(--warn)}
+
+/* ---------- planner ---------- */
+.verdict::before{content:'';position:absolute;inset:0 0 auto;height:3px;border-radius:var(--r) var(--r) 0 0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.verdict-num{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 0 10px}
+.verdict-num .disp{font-size:clamp(2.4rem,5vw,3.4rem);font-weight:700;line-height:1;letter-spacing:-.035em}
+.verdict p{max-width:74ch}
+
+.phasebar{display:flex;height:34px;border-radius:11px;overflow:hidden;border:1px solid var(--border)}
+.ph-seg{position:relative;display:grid;place-items:center;min-width:5px}
+.ph-seg i{position:absolute;inset:0;background:var(--pc);opacity:.3}
+.ph-seg.now i{opacity:.85}
+.ph-seg span{position:relative;font-size:.68rem;font-weight:700;letter-spacing:.03em;color:var(--text);text-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;max-width:95%;text-overflow:ellipsis;padding:0 4px}
+.ph-seg.now span{color:#fff}
+html[data-theme="light"] .ph-seg span{text-shadow:none}
+html[data-theme="light"] .ph-seg.now span{color:#1a2033;text-shadow:none}
+.ph-axis{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:7px}
+
+.alloc{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.donut{position:relative;width:130px;height:130px;border-radius:50%;flex:none;display:grid;place-items:center}
+.donut i{position:absolute;inset:17px;border-radius:50%;background:var(--card)}
+.donut-lb{position:relative;text-align:center;line-height:1.1}
+.donut-lb b{font-family:var(--font-disp);font-size:1.35rem;letter-spacing:-.02em;display:block}
+.donut-lb span{font-size:.68rem;color:var(--muted)}
+.al-chips{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;flex:1;min-width:190px}
+.al-chip{display:flex;align-items:center;gap:9px}
+.al-chip i{width:9px;height:9px;border-radius:3px;flex:none}
+.al-chip b{font-size:.84rem;display:block;line-height:1.2}
+.al-chip span{font-size:.73rem;color:var(--muted)}
+
+.whatif{display:flex;align-items:center;gap:16px;margin:8px 0 13px}
+.whatif .disp{font-size:1.5rem;font-weight:700;min-width:64px;text-align:right}
+
+.week{display:flex;flex-direction:column;gap:6px}
+.wk-row{display:flex;align-items:center;gap:13px;padding:8px 11px;border-radius:11px;border:1px solid transparent}
+.wk-row.today{background:var(--card2);border-color:var(--border2)}
+.wk-d{width:46px;font-weight:700;font-size:.82rem;color:var(--muted);flex:none}
+.wk-row.today .wk-d{color:var(--text)}
+.wk-d i{display:block;font-style:normal;font-size:.6rem;color:var(--acc2);letter-spacing:.08em;text-transform:uppercase}
+.wk-chips{display:flex;gap:7px;flex-wrap:wrap}
+
+/* ---------- mock chart ---------- */
+.mockchart{width:100%;height:auto;margin-top:4px}
+.mg{stroke:var(--border);stroke-width:1}
+.mct{fill:var(--faint);font-size:10px;font-family:var(--font-ui)}
+.ma{fill:rgba(124,147,255,.13);stroke:none}
+.ml{fill:none;stroke:var(--acc);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.md{stroke:var(--card);stroke-width:2}
+.md.cse{fill:var(--cse)}
+.md.da{fill:var(--da)}
+.mock-stats b{color:var(--text)}
+
+/* ---------- modal ---------- */
+.modal-back{
+  position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:18px;
+  background:rgba(5,8,18,.6);backdrop-filter:blur(6px);animation:fadein .18s ease;
+}
+.modal{
+  width:min(480px,100%);max-height:88vh;overflow:auto;
+  background:var(--card);border:1px solid var(--border2);border-radius:18px;
+  padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.5);animation:pop .2s cubic-bezier(.22,1.4,.36,1);
+}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
+.m-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.m-t{font-family:var(--font-disp);font-weight:700;font-size:1.12rem;letter-spacing:-.01em}
+.modal form{display:flex;flex-direction:column;gap:13px}
+.m-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:6px}
+
+/* ---------- toasts ---------- */
+.toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{
+  display:flex;align-items:center;gap:13px;pointer-events:auto;
+  padding:11px 17px;border-radius:13px;font-size:.87rem;font-weight:500;
+  background:var(--card2);border:1px solid var(--border2);box-shadow:var(--shadow);
+  animation:toastin .25s cubic-bezier(.22,1.4,.36,1);max-width:min(92vw,480px);
+}
+@keyframes toastin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.toast.out{opacity:0;transform:translateY(8px);transition:all .3s}
+.toast-b{color:var(--acc);font-weight:700;white-space:nowrap}
+.toast-b:hover{text-decoration:underline}
+
+/* ---------- empty state ---------- */
+.empty{
+  grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  text-align:center;padding:44px 20px;color:var(--muted);
+}
+.empty .ic{width:30px;height:30px;color:var(--faint);margin-bottom:6px}
+.empty b{color:var(--text);font-size:.98rem}
+.empty span{font-size:.84rem;max-width:340px}
+.empty .btn{margin-top:12px}
+
+.about{font-size:.8rem;color:var(--muted);line-height:1.6}
+.about b{color:var(--text);font-family:var(--font-disp)}
+
+/* ---------- focus & a11y ---------- */
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+.input:focus-visible,.step-in:focus-visible{outline:none}
+
+/* ---------- scrollbar ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--faint)}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width:1180px){
+  .c4{grid-column:span 6}
+  .c5,.c7{grid-column:span 12}
+  .main{padding:26px 24px 60px}
+}
+
+@media (max-width:1020px){
+  .app{display:block}
+  .sidebar{display:none}
+
+  .topbar{
+    display:flex;align-items:center;gap:10px;
+    position:sticky;top:0;z-index:40;
+    padding:12px 16px;
+    padding-top:calc(12px + env(safe-area-inset-top));
+    background:color-mix(in srgb,var(--bg) 82%,transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .tb-brand{display:flex;align-items:center;gap:9px}
+  .tb-brand .brand-logo{width:27px;height:27px}
+  .tb-brand b{font-family:var(--font-disp);font-size:1.05rem}
+  .tb-act{margin-left:auto;display:flex;gap:4px}
+
+  .bottomnav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;
+    background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--border);
+    padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+  }
+  .bn-btn{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:6px 4px;border-radius:11px;color:var(--faint);font-size:.64rem;font-weight:600;
+    letter-spacing:.02em;transition:color .15s;
+  }
+  .bn-btn .ic{width:19px;height:19px}
+  .bn-btn.active{color:var(--acc)}
+  .bn-btn:active{transform:scale(.94)}
+
+  .main{padding:20px 16px calc(92px + env(safe-area-inset-bottom))}
+  .vhead h1{font-size:1.42rem}
+}
+
+@media (max-width:720px){
+  .c4,.c5,.c6,.c7,.c8{grid-column:span 12}
+  .grid{gap:12px}
+  .input{font-size:16px}   /* prevent iOS zoom */
+  .subj-grid{grid-template-columns:1fr}
+  .statgrid{grid-template-columns:repeat(3,1fr)}
+  .qform{grid-template-columns:1fr 1fr 1fr}
+  .al-chips{grid-template-columns:1fr 1fr}
+  .toolbar .search{max-width:none;flex:1;order:3;min-width:100%}
+  .count-num .cd-d{font-size:3rem}
+  .verdict-num .disp{font-size:2.3rem}
+  .row{display:flex;flex-wrap:wrap;gap:6px 12px}
+  .r-note{flex-basis:100%;order:9;white-space:normal}
+  .r-act{margin-left:auto}
+  .rows{max-height:none}
+  .wk-chips{gap:5px}
+  .schip{padding:4px 9px;font-size:.72rem}
+  .whatif{gap:12px}
+}
+
+@media (max-width:400px){
+  .statgrid{grid-template-columns:repeat(2,1fr)}
+  .seg-b{padding:6px 9px;font-size:.76rem}
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+
+/* ---------- phase legend (planner runway) ---------- */
+.ph-legend{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.ph-row{
+  display:grid;align-items:center;gap:10px;
+  grid-template-columns:10px minmax(120px,1.1fr) minmax(120px,1fr) 64px minmax(160px,1.4fr);
+  padding:8px 10px;border-radius:10px;border:1px solid transparent;font-size:.84rem;
+}
+.ph-row.now{background:var(--card2);border-color:var(--border2)}
+.ph-row>i{width:10px;height:10px;border-radius:3px}
+.ph-nm{display:flex;align-items:center;gap:7px;min-width:0}
+.ph-nm b{font-weight:650}
+.ph-nm .badge{font-size:.62rem;padding:2px 7px}
+.ph-dt{color:var(--muted);white-space:nowrap}
+.ph-ln{color:var(--muted);white-space:nowrap;font-size:.8rem}
+.ph-sp{color:var(--faint);font-size:.76rem;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:820px){
+  .ph-row{grid-template-columns:10px 1fr auto;row-gap:2px}
+  .ph-dt{grid-column:2/4;font-size:.78rem}
+  .ph-ln{grid-column:3/4;grid-row:1;text-align:right}
+  .ph-sp{grid-column:2/4;text-align:left}
+}
+
+.pi-hint{display:none}
+.plan-item:hover .pi-hint{display:block;white-space:nowrap;margin-right:2px}
+@media (max-width:900px){.plan-item:hover .pi-hint{display:none}}
+
+/* ---------- insights ---------- */
+.ins-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 10px;padding:7px 0}
+.ins-lb{font-size:.86rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ins-lb em{font-style:normal}
+.ins-v{grid-column:2;text-align:right;font-size:.95rem;font-weight:700;font-family:var(--font-disp);white-space:nowrap;letter-spacing:-.02em}
+.ins-v b{font-family:var(--font-disp)}
+.ins-bar{grid-column:1/-1}
+.ins-bar .bar{margin:4px 0 0}
+
+/* readiness gauge — fluid, never overflows its card */
+.ready-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.gauge{position:relative;width:clamp(112px,32%,160px);aspect-ratio:1;flex:none;display:grid;place-items:center}
+.gauge svg{position:absolute;inset:0;width:100%;height:100%}
+.gauge-track{fill:none;stroke:var(--border2);opacity:.6}
+.gauge-lb{position:relative;text-align:center;line-height:1.05}
+.gauge-lb b{display:block;font-size:clamp(1.7rem,4.6vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.gauge-lb span{font-size:.7rem;color:var(--muted)}
+.ready-parts{flex:1 1 220px;min-width:190px}
+@media (max-width:520px){
+  .ready-wrap{gap:14px}
+  .gauge{width:104px}
+  .ready-parts{flex-basis:100%}
+}
+.bd-ideal{fill:none;stroke:var(--faint);stroke-width:2;stroke-dasharray:6 6}
+.bd-proj{stroke:var(--warn);stroke-width:2;stroke-dasharray:4 5}
+.bd-tgt{stroke:var(--border2);stroke-width:1.5;stroke-dasharray:3 4}
+
+/* ---------- toggles ---------- */
+.tog-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--border)}
+.tog-row:first-of-type{border-top:none}
+.tog-row .seg{cursor:pointer}
+
+/* ---------- focus timer ---------- */
+.timer-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.timer-face{position:relative;width:120px;height:120px;flex:none;display:grid;place-items:center}
+.timer-face svg{position:absolute;inset:0;width:120px;height:120px}
+.timer-face b{position:relative;font-size:1.5rem;letter-spacing:-.02em}
+.timer-side{flex:1;min-width:150px;display:flex;flex-direction:column;gap:8px}
+.timer-side .input{width:100%}
+#timer-btns .btn{flex:1;justify-content:center}
+
+/* ---------- chip picker (mock weak areas) ---------- */
+.chip-pick{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow:auto;padding:2px}
+.chip-pick .rev-chip{font-size:.72rem;padding:5px 9px;font-weight:600}
+
+/* ---------- command palette ---------- */
+.pal{width:min(560px,92vw)}
+.pal-in{margin-bottom:10px;font-size:1rem}
+.pal-list{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto}
+.pal-i{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;font-size:.9rem;color:var(--muted)}
+.pal-i:hover,.pal-i.on{background:var(--card2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
+.pal-foot{margin-top:10px;text-align:center}
+
+/* ---------- heatmap: labels + month calendar ---------- */
+.heat-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.heat-wrap{display:inline-flex;gap:7px;align-items:flex-start}
+.heat-days{display:grid;grid-template-rows:repeat(7,var(--hc,14px));gap:3px;font-size:.58rem;color:var(--faint);flex:none;padding-top:17px;text-align:right}
+.heat-days span{display:flex;align-items:center;justify-content:flex-end;line-height:1;height:var(--hc,14px)}
+.heat-body{flex:none}
+.heat-months{display:grid;grid-auto-flow:column;grid-auto-columns:var(--hc,14px);gap:3px;font-size:.64rem;color:var(--faint);height:14px;margin-bottom:3px}
+.heat-months span{white-space:nowrap;line-height:1}
+.heat-leg .hc{width:11px;height:11px}
+@media (max-width:720px){ .heat{--hc:13px} .heat-days{--hc:13px} .heat-months{grid-auto-columns:13px} }
+
+.month-wrap{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.mcal-box{flex:1 1 300px;max-width:440px;min-width:0}
+.month-stats{flex:1 1 260px;min-width:0}
+.month-stats .statgrid{grid-template-columns:repeat(3,1fr)}
+.mcal-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.mcal-head b{font-family:var(--font-disp);font-size:1.02rem}
+.mcal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px;font-size:.66rem;color:var(--faint);text-align:center}
+.mcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;align-content:start}
+.mc{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;
+  min-height:clamp(46px,7.4vw,60px);
+  padding:6px 7px;border-radius:9px;background:var(--input-bg);border:1px solid var(--border);
+  text-align:left;min-width:0;overflow:hidden;transition:transform .12s,border-color .12s;
+}
+.mc:hover{transform:translateY(-1px);border-color:var(--acc)}
+.mc b{font-size:.72rem;font-weight:600;color:var(--muted)}
+.mc span{font-family:var(--font-disp);font-size:.82rem;font-weight:700;letter-spacing:-.02em}
+.mc.empty{background:transparent;border:none;pointer-events:none;min-height:0}
+.mc.future{opacity:.35;pointer-events:none}
+.mc.today{box-shadow:0 0 0 2px var(--acc)}
+.mc.l1{background:rgba(52,211,177,.2);border-color:transparent}
+.mc.l2{background:rgba(52,211,177,.38);border-color:transparent}
+.mc.l3{background:rgba(78,190,255,.5);border-color:transparent}
+.mc.l4{background:rgba(124,147,255,.75);border-color:transparent}
+.mc.l1 b,.mc.l2 b,.mc.l3 b,.mc.l4 b{color:var(--text)}
+@media (max-width:900px){ .month-stats .statgrid{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:520px){ .mc{padding:4px;border-radius:7px} .mc b{font-size:.62rem} .mc span{font-size:.68rem} .mcal{gap:3px} .month-wrap{gap:14px} .month-stats .statgrid{grid-template-columns:repeat(2,1fr)} }
+
+/* ---------- pace math box ---------- */
+.mathbox{display:flex;flex-direction:column;gap:2px}
+.mrow{display:flex;align-items:center;gap:13px;padding:10px 12px;border-radius:11px;border:1px solid transparent}
+.mrow:nth-child(odd){background:var(--card2)}
+.mrow.total{border-color:var(--border2);background:linear-gradient(135deg,rgba(124,147,255,.12),rgba(52,211,177,.08));margin-top:6px}
+.mno{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;flex:none;
+  background:var(--input-bg);border:1px solid var(--border);font-size:.74rem;font-weight:700;color:var(--muted)}
+.mrow.total .mno{background:var(--acc);color:#0A0E1D;border-color:transparent}
+.mtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.mtx b{font-size:.88rem;font-weight:600}
+.mval{font-size:1.05rem;font-weight:700;white-space:nowrap;letter-spacing:-.02em}
+.mrow.total .mval{font-size:1.4rem;color:var(--acc)}
+@media (max-width:600px){ .mrow{gap:9px;padding:9px} .mval{font-size:.95rem} }
+
+/* ROI rows share .ins-row; keep the marks/hour value compact */
+.ins-v .tiny{font-weight:500}
+.statgrid.mt6{margin-top:10px}
+
+
+/* ============================================================
+   Global overflow safety — no card, chart or label may ever
+   push the layout wider than the screen, at any size.
+   ============================================================ */
+html,body{max-width:100%;overflow-x:hidden}
+.app,.main,.view,.grid,.card{min-width:0;max-width:100%}
+svg,canvas,img{max-width:100%}
+.card svg{height:auto}
+.vhead h1,.card-t,.subj-name,.pi-tx b,.r-name,.ins-lb,.mtx b{overflow-wrap:anywhere}
+.kpi-num,.count-num .cd-d,.verdict-num .disp{overflow-wrap:normal}
+.seg{flex-wrap:wrap}
+.card-h{row-gap:8px}
+.statgrid{grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}
+.rows{overflow-x:auto}
+.frow.wrap>*{min-width:0}
+select.input,.input.select{max-width:100%}
+.modal{width:min(480px,calc(100vw - 32px))}
+.pal{width:min(560px,calc(100vw - 36px))}
+
+/* very small phones (≤360px) */
+@media (max-width:360px){
+  .main{padding:16px 12px calc(88px + env(safe-area-inset-bottom))}
+  .card.pad{padding:14px}
+  .kpi-num{font-size:2rem}
+  .btn{padding:8px 12px;font-size:.84rem}
+  .bn-btn{font-size:.58rem}
+  .mc{min-height:42px;padding:4px}
+}
+
+/* large desktops: keep content readable instead of stretched to 4K */
+@media (min-width:1700px){
+  .main{max-width:1520px}
+}
+
+/* advanced disclosure (settings) */
+.adv{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.adv summary{cursor:pointer;font-size:.84rem;font-weight:600;color:var(--muted);list-style:none}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary::before{content:'▸ ';color:var(--acc)}
+.adv[open] summary::before{content:'▾ '}
+.adv summary:hover{color:var(--text)}
+textarea.input{resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;line-height:1.4;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 24 24" aria-hidden="true">
+        <defs><linearGradient id="blg" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#7C93FF"/><stop offset="1" stop-color="#5EC8F2"/>
+        </linearGradient></defs>
+        <path d="M2.5 20 10 5.5l4.5 8.5L17 9.5 21.5 20Z" fill="url(#blg)"/>
+        <path d="M11.5 20l5.3-10.2L21.5 20Z" fill="#34D3B1" opacity=".9"/>
+      </svg>
+      <div><b>Ascent</b><span>GATE CSE · DA</span></div>
+    </div>
+    <nav id="side-nav" aria-label="Main navigation"></nav>
+    <div class="side-foot">
+      <button class="icon-btn theme-btn" data-action="theme-cycle" aria-label="Toggle light / dark theme"></button>
+      <span class="foot-note">auto-saved</span>
+      <span class="save-dot" id="save-dot" title="All changes saved"></span>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="tb-brand">
+      <svg class="brand-logo" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M2.5 20 10 5.5l4.5 8.5L17 9.5 21.5 20Z" fill="#7C93FF"/>
+        <path d="M11.5 20l5.3-10.2L21.5 20Z" fill="#34D3B1" opacity=".9"/>
+      </svg>
+      <b>Ascent</b>
+    </div>
+    <div class="tb-act">
+      <button class="icon-btn" data-action="palette" aria-label="Command palette">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </button>
+      <button class="icon-btn theme-btn" data-action="theme-cycle" aria-label="Toggle light / dark theme"></button>
+      <button class="icon-btn" data-action="nav" data-view="settings" aria-label="Settings">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="view" data-view="dashboard" id="view-dashboard"></section>
+    <section class="view" data-view="subjects"  id="view-subjects"></section>
+    <section class="view" data-view="planner"   id="view-planner"></section>
+    <section class="view" data-view="insights"  id="view-insights"></section>
+    <section class="view" data-view="log"       id="view-log"></section>
+    <section class="view" data-view="mocks"     id="view-mocks"></section>
+    <section class="view" data-view="settings"  id="view-settings"></section>
+    <noscript><div style="padding:40px;text-align:center;font-family:sans-serif">Ascent needs JavaScript — everything runs locally in your browser, nothing is sent anywhere.</div></noscript>
+  </main>
+
+  <nav class="bottomnav" id="bottom-nav" aria-label="Main navigation"></nav>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root" class="toasts" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   Ascent — GATE CSE & DA command center
+   State, storage & domain math
+   ============================================================ */
+
+/* ---------- tiny helpers ---------- */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const DAY = 86400000;
+const pad2 = n => String(n).padStart(2, '0');
+const isoOf = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const todayISO = () => isoOf(new Date());
+const parseISO = s => { const p = String(s).split('-').map(Number); return new Date(p[0], (p[1] || 1) - 1, p[2] || 1); };
+const daysUntil = iso => Math.round((parseISO(iso).getTime() - parseISO(todayISO()).getTime()) / DAY);
+const addDays = (iso, n) => isoOf(new Date(parseISO(iso).getTime() + n * DAY));
+const fmtD  = iso => { try { return parseISO(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); } catch (e) { return iso; } };
+const fmtDY = iso => { try { return parseISO(iso).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return iso; } };
+const fmtH = h => { h = Math.max(0, +h || 0); const r = Math.round(h * 10) / 10; return (Number.isInteger(r) ? r : r.toFixed(1)) + 'h'; };
+const fmtN = n => (+n || 0).toLocaleString('en-IN');
+const pct = (a, b) => b > 0 ? clamp(a / b, 0, 1) : 0;
+
+/* ---------- storage (localStorage with in-memory fallback) ---------- */
+const KEY = 'ascent-gate-v1';
+const storage = (() => {
+  try {
+    const t = '__ascent_probe';
+    localStorage.setItem(t, '1'); localStorage.removeItem(t);
+    return { ok: true, get: () => localStorage.getItem(KEY), set: v => localStorage.setItem(KEY, v) };
+  } catch (e) {
+    let mem = null;
+    return { ok: false, get: () => mem, set: v => { mem = v; } };
+  }
+})();
+
+/* ---------- default data ----------
+   Lecture counts & weightages are practical estimates for a
+   GO Classes–style syllabus. Every value is editable in the UI. */
+const PALETTE = ['#7C93FF','#34D3B1','#FFC554','#FF8FB1','#B78CFF','#5EC8F2','#F0916B','#8FD16E','#F2C14E','#6FA8FF','#E08CC7','#63D9C4','#FFA36C','#9BA8FF','#7FD4A8','#F27E9B','#8CC7FF','#D9B45C','#A6E06B','#FF9E7C'];
+
+/* [name, exam, lectures, weightCSE, weightDA, pyqPool] */
+const DEF_SUBJECTS = [
+  ['General Aptitude',        'both', 30, 15, 15, 250],
+  ['Linear Algebra',          'both', 45,  3,  7, 120],
+  ['Probability & Statistics','both', 60,  3, 17, 140],
+  ['DBMS',                    'both', 55,  8,  6, 220],
+  ['Discrete Mathematics',    'cse',  90,  7,  0, 300],
+  ['Calculus (Engg Math)',    'cse',  22,  2,  0,  60],
+  ['Digital Logic',           'cse',  50,  4,  0, 180],
+  ['Computer Organization',   'cse',  65,  8,  0, 220],
+  ['C Programming',           'cse',  55,  6,  0, 180],
+  ['Data Structures',         'cse',  45,  7,  0, 180],
+  ['Algorithms',              'cse',  70,  7,  0, 250],
+  ['Theory of Computation',   'cse',  65,  7,  0, 280],
+  ['Compiler Design',         'cse',  40,  4,  0, 130],
+  ['Operating Systems',       'cse',  60,  9,  0, 230],
+  ['Computer Networks',       'cse',  45,  8,  0, 200],
+  ['Calculus & Optimization', 'da',   30,  0,  6,  60],
+  ['Python & DSA',            'da',   55,  0, 12, 100],
+  ['Machine Learning',        'da',   85,  0, 25, 150],
+  ['Artificial Intelligence', 'da',   45,  0, 10,  80],
+  ['Data Warehousing',        'da',   12,  0,  2,  30],
+];
+
+function seedSubjects() {
+  return DEF_SUBJECTS.map((r, i) => ({
+    id: uid(), name: r[0], exam: r[1], total: r[2], done: 0,
+    wc: r[3], wd: r[4], pyqTotal: r[5], pyqDone: 0, rev: 0,
+    color: PALETTE[i % PALETTE.length],
+  }));
+}
+
+function defaultState() {
+  return {
+    v: 1,
+    settings: {
+      theme: 'dark', mode: 'both',
+      dateCSE: '2027-02-06', dateDA: '2027-02-07',
+      dailyHours: 6, hoursWk: 6, hoursWe: 8, buffer: 30, effMin: 55,
+      revInts: [7, 21, 60], revRepeat: 45,
+      accentAuto: true, notify: false,
+      pomoWork: 50, pomoBreak: 10,
+      gist: { token: '', id: '', last: '' },
+    },
+    subjects: seedSubjects(),
+    logs: {}, mocks: [], planChecks: {}, planEdits: {}, planRepeat: [], paceHist: {},
+    timer: null,
+    flags: { welcome: true, notified: '' },
+  };
+}
+
+let S = load();
+function load() {
+  try {
+    const raw = storage.get();
+    if (!raw) return defaultState();
+    const d = JSON.parse(raw);
+    const base = defaultState();
+    if (!d || typeof d !== 'object') return base;
+    const st = Object.assign(base.settings, d.settings || {});
+    if (d.settings && d.settings.hoursWk == null && d.settings.dailyHours != null) {
+      st.hoursWk = +d.settings.dailyHours || 6;
+      st.hoursWe = Math.min(14, (+d.settings.dailyHours || 6) + 2);
+    }
+    if (!Array.isArray(st.revInts) || !st.revInts.length) st.revInts = [7, 21, 60];
+    if (!st.gist || typeof st.gist !== 'object') st.gist = { token: '', id: '', last: '' };
+    return {
+      v: 1,
+      settings: st,
+      subjects: Array.isArray(d.subjects) && d.subjects.length ? d.subjects : base.subjects,
+      logs: d.logs && typeof d.logs === 'object' ? d.logs : {},
+      mocks: Array.isArray(d.mocks) ? d.mocks : [],
+      planChecks: d.planChecks && typeof d.planChecks === 'object' ? d.planChecks : {},
+      planEdits: d.planEdits && typeof d.planEdits === 'object' ? d.planEdits : {},
+      planRepeat: Array.isArray(d.planRepeat) ? d.planRepeat : [],
+      paceHist: d.paceHist && typeof d.paceHist === 'object' ? d.paceHist : {},
+      timer: d.timer && typeof d.timer === 'object' ? d.timer : null,
+      flags: Object.assign(base.flags, d.flags || {}),
+    };
+  } catch (e) { return defaultState(); }
+}
+
+let saveT = null;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try { storage.set(JSON.stringify(S)); } catch (e) {}
+    const el = $('#save-dot');
+    if (el) { el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 900); }
+  }, 200);
+}
+
+/* ============================================================
+   Domain: phases, pacing, projections, streaks, today's plan
+   ============================================================ */
+const PHASES = [
+  { min: 150, name: 'Foundation',        color: '#7C93FF', range: '150+ days out',
+    split: { lec: .60, prac: .25, rev: .10, mock: .05 }, mocksWk: 1, mockType: 'topic test',
+    tip: 'Go deep on concepts. Push lecture pace, but never skip the "why" — GATE punishes shallow learning.' },
+  { min: 90,  name: 'Core Learning',     color: '#5EC8F2', range: '90–150 days out',
+    split: { lec: .50, prac: .30, rev: .12, mock: .08 }, mocksWk: 1, mockType: 'subject test',
+    tip: 'Keep lecture momentum, and give every finished subject a PYQ pass within a week — before it fades.' },
+  { min: 45,  name: 'Consolidation',     color: '#34D3B1', range: '45–90 days out',
+    split: { lec: .30, prac: .40, rev: .18, mock: .12 }, mocksWk: 1, mockType: 'full-length mock',
+    tip: 'Practice overtakes lectures. Weekly full mocks start now — treat every mock analysis as a study session.' },
+  { min: 20,  name: 'Intensive Practice',color: '#FFC554', range: '20–45 days out',
+    split: { lec: .12, prac: .40, rev: .28, mock: .20 }, mocksWk: 2, mockType: 'full-length mock',
+    tip: 'No new topics unless critical. Grind PYQs, patch weak areas from mock analysis, tighten formula sheets.' },
+  { min: 0,   name: 'Final Sprint',      color: '#FF8FB1', range: 'last 20 days',
+    split: { lec: .05, prac: .25, rev: .40, mock: .30 }, mocksWk: 3, mockType: 'full-length mock',
+    tip: 'Mock, analyse, revise, sleep. Alternate mock days with revision days — recall beats cramming, always.' },
+];
+const MOCK_DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4] };  /* getDay(): Sun=0 */
+function phaseFor(days) { for (const p of PHASES) if (days >= p.min) return p; return PHASES[PHASES.length - 1]; }
+
+const EXAMS = { cse: { label: 'GATE CSE', short: 'CSE' }, da: { label: 'GATE DA', short: 'DA' } };
+function activeExamKeys() { const m = S.settings.mode; return m === 'both' ? ['cse', 'da'] : [m]; }
+function examMeta(k) {
+  const date = k === 'cse' ? S.settings.dateCSE : S.settings.dateDA;
+  return { key: k, label: EXAMS[k].label, short: EXAMS[k].short, date, days: daysUntil(date) };
+}
+function activeExams()   { return activeExamKeys().map(examMeta); }
+function upcomingExams() { return activeExams().filter(e => e.days > 0).sort((a, b) => a.days - b.days); }
+function subjectVisible(s) { const m = S.settings.mode; return m === 'both' || s.exam === 'both' || s.exam === m; }
+function activeSubjects()  { return S.subjects.filter(subjectVisible); }
+function subjectsForExam(k){ return S.subjects.filter(s => s.exam === k || s.exam === 'both'); }
+function remHrs(s) { return Math.max(0, (+s.total || 0) - (+s.done || 0)) * (+S.settings.effMin || 55) / 60; }
+function isWeekend(d) { const g = d.getDay(); return g === 0 || g === 6; }
+function hoursFor(dateOrIso) {
+  const d = typeof dateOrIso === 'string' ? parseISO(dateOrIso) : dateOrIso;
+  const s = S.settings;
+  return clamp(isWeekend(d) ? (+s.hoursWe || +s.dailyHours || 6) : (+s.hoursWk || +s.dailyHours || 6), .5, 24);
+}
+function avgDailyHours() {
+  const s = S.settings;
+  const wk = clamp(+s.hoursWk || +s.dailyHours || 6, .5, 24), we = clamp(+s.hoursWe || +s.dailyHours || 6, .5, 24);
+  return (wk * 5 + we * 2) / 7;
+}
+function hoursToday() { return hoursFor(new Date()); }
+function wMax(s)   { return Math.max(+s.wc || 0, +s.wd || 0); }
+
+function lecTotals(list) {
+  let total = 0, done = 0;
+  for (const s of list) { total += +s.total || 0; done += Math.min(+s.done || 0, +s.total || 0); }
+  return { total, done, rem: total - done, remH: (total - done) * (+S.settings.effMin || 55) / 60 };
+}
+function weightedProgress(k) {
+  let W = 0, acc = 0;
+  for (const s of subjectsForExam(k)) {
+    const w = k === 'cse' ? +s.wc || 0 : +s.wd || 0;
+    if (w <= 0 || !(+s.total > 0)) continue;
+    W += w; acc += w * pct(+s.done || 0, +s.total);
+  }
+  return W > 0 ? acc / W : 0;
+}
+
+/* The heart of the tracker: required daily lecture-hours, computed
+   per subject against its own effective deadline (exam − buffer),
+   with subjects common to both papers paced by the nearer exam. */
+function pacing() {
+  const ex = upcomingExams();
+  if (!ex.length) return null;
+  const buf = clamp(Math.round(+S.settings.buffer || 0), 0, 120);
+  const eff = clamp(+S.settings.effMin || 55, 15, 240);
+  const H   = avgDailyHours();
+  const dEff = {};
+  ex.forEach(e => { dEff[e.key] = Math.max(1, e.days - buf); });
+  const minD = Math.min(...ex.map(e => dEff[e.key]));
+
+  let needH = 0, remLect = 0;
+  for (const s of activeSubjects()) {
+    const rem = Math.max(0, (+s.total || 0) - (+s.done || 0));
+    if (!rem) continue;
+    let d = null;
+    if (s.exam === 'both') d = minD;
+    else { if (!ex.some(x => x.key === s.exam)) continue; d = dEff[s.exam]; }
+    remLect += rem;
+    needH += rem * eff / 60 / d;
+  }
+
+  const nearest = ex[0];
+  const phase = phaseFor(nearest.days);
+  const availLecH = H * phase.split.lec;
+  const lectPerDay = needH * 60 / eff;
+  const totalNeeded = phase.split.lec > 0 ? needH / phase.split.lec : needH;
+  const ratio = availLecH > 0 ? needH / availLecH : (needH > 0 ? 9 : 0);
+  const status = remLect === 0 ? 'done' : ratio <= 1.02 ? 'ok' : ratio <= 1.35 ? 'warn' : 'bad';
+
+  /* Adaptive layer: your actual behaviour bends the target.
+     Behind on hours  → the deficit is amortised over the next 14 days (target rises).
+     Ahead on hours   → the surplus is credited back (target falls), capped so you
+     can't coast a whole week off one heroic Sunday. */
+  const dbt = debtState();
+  const rawAdj = dbt.ready ? dbt.debt / (dbt.window || 14) : 0;
+  const adj = clamp(rawAdj, -1.5, 3);
+  const adaptive = clamp(totalNeeded + adj, remLect === 0 ? 0 : .5, 18);
+  const trend = paceTrend(adaptive);
+
+  return { ex, nearest, phase, needH, availLecH, lectPerDay, totalNeeded, remLect, status, ratio,
+           dEff, buf, H, eff, todayH: hoursToday(), dbt, adj, adaptive, trend };
+}
+
+/* Records today's adaptive target and reports the 7-day change. */
+function paceTrend(adaptive) {
+  const t = todayISO();
+  if (!S.paceHist) S.paceHist = {};
+  const prev = S.paceHist[addDays(t, -7)] ?? S.paceHist[addDays(t, -6)] ?? S.paceHist[addDays(t, -8)];
+  if (S.paceHist[t] !== Math.round(adaptive * 100) / 100) {
+    S.paceHist[t] = Math.round(adaptive * 100) / 100;
+    const keys = Object.keys(S.paceHist).sort();
+    while (keys.length > 200) delete S.paceHist[keys.shift()];
+  }
+  if (prev == null) return null;
+  const d = adaptive - prev;
+  return { prev, delta: d, dir: Math.abs(d) < .05 ? 'flat' : d < 0 ? 'down' : 'up' };
+}
+
+function recentPace(n = 14) {
+  const t = parseISO(todayISO()).getTime();
+  let lect = 0, hrs = 0, logged = 0;
+  for (let i = 0; i < n; i++) {
+    const l = S.logs[isoOf(new Date(t - i * DAY))];
+    if (l) { logged++; lect += +l.lectures || 0; hrs += +l.hours || 0; }
+  }
+  return { n, logged, lectPerDay: lect / n, hrsPerDay: hrs / n };
+}
+function projection(p) {
+  const pace = recentPace();
+  if (!p || p.remLect === 0) return { pace, ready: false };
+  if (pace.logged < 3 || pace.lectPerDay <= 0) return { pace, ready: false };
+  const days = Math.ceil(p.remLect / pace.lectPerDay);
+  const finish = addDays(todayISO(), days);
+  const target = addDays(p.nearest.date, -p.buf);
+  return { pace, ready: true, finish, target, ok: parseISO(finish) <= parseISO(target), days };
+}
+
+function hasLog(iso) {
+  const l = S.logs[iso];
+  return !!l && ((+l.hours || 0) > 0 || (+l.lectures || 0) > 0 || (+l.questions || 0) > 0);
+}
+function streaks() {
+  let cur = 0, d = parseISO(todayISO());
+  if (!hasLog(isoOf(d))) d = new Date(d.getTime() - DAY);
+  while (hasLog(isoOf(d))) { cur++; d = new Date(d.getTime() - DAY); }
+  const days = Object.keys(S.logs).filter(hasLog).sort();
+  let best = 0, run = 0, prev = null;
+  for (const k of days) {
+    run = (prev && Math.round((parseISO(k) - parseISO(prev)) / DAY) === 1) ? run + 1 : 1;
+    best = Math.max(best, run); prev = k;
+  }
+  let totalH = 0, totalL = 0, totalQ = 0;
+  for (const l of Object.values(S.logs)) { totalH += +l.hours || 0; totalL += +l.lectures || 0; totalQ += +l.questions || 0; }
+  return { cur, best, totalH, totalL, totalQ, daysLogged: days.length };
+}
+
+function planChecksToday() {
+  const t = todayISO();
+  for (const k of Object.keys(S.planChecks)) if (k !== t) delete S.planChecks[k];
+  if (!S.planChecks[t]) S.planChecks[t] = {};
+  return S.planChecks[t];
+}
+
+/* Auto-generated daily to-do, derived from phase split + progress.
+   Items carry stable ids so checks / edits can be keyed to them. */
+function autoPlan() {
+  const p = pacing();
+  const items = [];
+  if (!p) {
+    items.push({ id: 'a-none', ic: 'flag', text: 'No upcoming exam date set', meta: 'Add one in Settings and the plan builds itself' });
+    return { items, p: null };
+  }
+  const H = p.todayH || p.H, sp = p.phase.split, dow = new Date().getDay();
+  const lecH = H * sp.lec, pracH = H * sp.prac, revH = H * sp.rev, mockH = H * sp.mock;
+  const subs = activeSubjects();
+
+  const inProg = subs.filter(s => s.done > 0 && s.done < s.total)
+                     .sort((a, b) => pct(b.done, b.total) - pct(a.done, a.total));
+  const unstarted = subs.filter(s => (+s.done || 0) === 0 && s.total > 0)
+                        .sort((a, b) => wMax(b) - wMax(a));
+  const lecSub = inProg[0] || unstarted[0];
+  if (p.remLect > 0 && lecH >= .4 && lecSub) {
+    const n = Math.max(1, Math.round(lecH * 60 / p.eff));
+    items.push({ id: 'a-lec', ic: 'play', text: `Watch ${n} lecture${n > 1 ? 's' : ''} — ${lecSub.name}`,
+                 meta: `${fmtH(lecH)} · ${lecSub.done}/${lecSub.total} done` });
+  }
+
+  const isMockDay = (MOCK_DAYS[p.phase.mocksWk] || []).includes(dow);
+  if (isMockDay && mockH >= 1) {
+    items.push({ id: 'a-mock', ic: 'gauge', text: `Take a ${p.phase.mockType} (${p.nearest.short}) + full analysis`,
+                 meta: `${fmtH(Math.max(mockH, 3))} · log the score in Mocks` });
+  } else if (mockH >= .4) {
+    items.push({ id: 'a-mock', ic: 'zap', text: 'Timed PYQ sprint — 60 min under exam conditions', meta: fmtH(mockH) });
+  }
+
+  const pracPool = subs.filter(s => s.total > 0 && pct(s.done, s.total) >= .5 && (+s.pyqTotal || 0) > 0)
+                       .sort((a, b) => pct(a.pyqDone, a.pyqTotal) - pct(b.pyqDone, b.pyqTotal));
+  const pracSub = pracPool[0] || inProg[0] || lecSub;
+  if (pracH >= .4 && pracSub) {
+    const early = pct(pracSub.done, pracSub.total) < .5;
+    const q = Math.max(5, Math.round(pracH * 15));
+    items.push({ id: 'a-prac', ic: 'pencil',
+      text: early ? `Practice problems from today's lectures — ${pracSub.name}` : `Solve ~${q} PYQs — ${pracSub.name}`,
+      meta: `${fmtH(pracH)}${!early && (+pracSub.pyqTotal || 0) ? ` · ${pracSub.pyqDone || 0}/${pracSub.pyqTotal} done` : ' · lock it in while it\u2019s fresh'}` });
+  }
+
+  const revPool = subs.filter(s => s.total > 0 && s.done >= s.total)
+                      .sort((a, b) => (+a.rev || 0) - (+b.rev || 0));
+  if (revH >= .3) {
+    if (revPool.length) {
+      const r = revPool[0];
+      items.push({ id: 'a-rev', ic: 'rotate', text: `Revise ${r.name} — short notes + formula sheet`,
+                   meta: `${fmtH(revH)} · revision ${(+r.rev || 0) + 1}` });
+    } else if (inProg.length > 1) {
+      items.push({ id: 'a-rev', ic: 'rotate', text: `Quick revision — yesterday's lectures of ${inProg[1].name}`, meta: fmtH(revH) });
+    } else {
+      items.push({ id: 'a-rev', ic: 'rotate', text: 'Active recall — rewrite today\u2019s notes from memory', meta: `${fmtH(revH)} · blank-page test` });
+    }
+  }
+
+  const due = revDue();
+  if (due.length) {
+    const d0 = due[0];
+    items.push({ id: 'a-revdue', ic: 'rotate',
+      text: `Revision ${d0.r.pass}: ${d0.s.name} — spaced repetition due`,
+      meta: `${due.length > 1 ? `${due.length} subjects due · ` : ''}${d0.r.dueIn === 0 ? 'due today' : `${-d0.r.dueIn} days overdue`} · mark it done on the card` });
+  }
+  const weak = weakSubjects();
+  if (weak.length) {
+    items.push({ id: 'a-weak', ic: 'alert', text: `Patch weak area — ${weak[0].s.name}`,
+      meta: `flagged in ${weak[0].n} recent mock${weak[0].n > 1 ? 's' : ''} · targeted PYQs + notes` });
+  }
+  items.push({ id: 'a-apt', ic: 'spark', text: 'General Aptitude drill — 20 min speed round', meta: 'daily habit, 15 easy marks' });
+  return { items, p };
+}
+
+/* Today's plan = auto items + your repeating tasks, unless you've edited
+   today's list — in which case your edited snapshot wins. */
+function planDay() {
+  const t = todayISO();
+  for (const k of Object.keys(S.planEdits)) if (k !== t) delete S.planEdits[k];
+  return t;
+}
+function repeatItems() {
+  return (S.planRepeat || []).map(r => ({ id: r.id, ic: r.ic || 'check', text: r.text, meta: r.meta || '', repeat: true }));
+}
+function todaysPlan() {
+  const t = planDay();
+  const auto = autoPlan();
+  const snap = S.planEdits[t];
+  if (snap && Array.isArray(snap.items)) return { items: snap.items, p: auto.p, edited: true };
+  return { items: auto.items.concat(repeatItems()), p: auto.p, edited: false };
+}
+/* Freeze today's list so it can be edited without the generator overwriting it. */
+function freezePlan() {
+  const t = planDay();
+  if (!S.planEdits[t]) S.planEdits[t] = { items: todaysPlan().items.map(x => Object.assign({}, x)) };
+  return S.planEdits[t];
+}
+
+/* ============================================================
+   Icons & reusable view components
+   ============================================================ */
+const IC = {
+  dash:  '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+  book:  '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  cal:   '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/>',
+  gauge: '<path d="M12 14l3.5-3.5"/><path d="M20.2 15.5a8.5 8.5 0 1 0-16.4 0"/>',
+  gear:  '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  sun:   '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
+  moon:  '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>',
+  plus:  '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  x:     '<path d="M18 6 6 18M6 6l12 12"/>',
+  pencil:'<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  trash: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
+  down:  '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  up:    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 9l5-5 5 5M12 4v12"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4.1 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  zap:   '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  rotate:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  trend: '<path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+  spark: '<path d="M12 3l1.9 5.6L20 10.5l-6.1 1.9L12 18l-1.9-5.6L4 10.5l6.1-1.9z"/>',
+  play:  '<path d="M6 4l14 8-14 8z"/>',
+  flag:  '<path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/>',
+};
+const icon = (n, cls = '') =>
+  `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
+
+let gid = 0;
+function ring(p, o = {}) {
+  const size = o.size || 108, st = o.stroke || 9;
+  const r = (size - st) / 2, c = 2 * Math.PI * r, off = c * (1 - clamp(p, 0, 1));
+  const id = 'rg' + (++gid);
+  return `<div class="ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${o.c1 || '#7C93FF'}"/><stop offset="1" stop-color="${o.c2 || '#5EC8F2'}"/>
+      </linearGradient></defs>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" class="ring-bg" stroke-width="${st}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" class="ring-fg" stroke="url(#${id})" stroke-width="${st}"
+        stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+        transform="rotate(-90 ${size/2} ${size/2})"/>
+    </svg>
+    <div class="ring-lb"><b>${Math.round(p * 100)}%</b><span>${esc(o.label || '')}</span></div>
+  </div>`;
+}
+const bar = (p, color) =>
+  `<div class="bar"><div class="bar-f" style="width:${(clamp(p, 0, 1) * 100).toFixed(1)}%${color ? `;background:${color}` : ''}"></div></div>`;
+const badgeExam = e =>
+  e === 'both' ? '<span class="badge b-cse">CSE</span><span class="badge b-da">DA</span>'
+  : e === 'cse' ? '<span class="badge b-cse">CSE</span>' : '<span class="badge b-da">DA</span>';
+const STATUS = { ok: ['On track', 's-ok'], warn: ['Push harder', 's-warn'], bad: ['At risk', 's-bad'], done: ['Lectures done', 's-ok'] };
+const statusBadge = st => { const s = STATUS[st] || STATUS.ok; return `<span class="badge ${s[1]}">${s[0]}</span>`; };
+
+let hmMode = 'year', hmOff = 0;
+const HLV = h => h <= 0 ? 0 : h < 2 ? 1 : h < 4 ? 2 : h < 6 ? 3 : 4;
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function heatHead(id) {
+  return `<div class="frow g8">
+    <div class="seg">
+      <button class="seg-b${hmMode === 'year' ? ' active' : ''}" data-action="hm-mode" data-v="year">Year</button>
+      <button class="seg-b${hmMode === 'month' ? ' active' : ''}" data-action="hm-mode" data-v="month">Month</button>
+    </div>
+    ${hmMode === 'month'
+      ? `<button class="icon-btn" data-action="hm-prev" aria-label="Previous month">${icon('minus')}</button>
+         <button class="icon-btn" data-action="hm-next" aria-label="Next month">${icon('plus')}</button>`
+      : `<span class="heat-leg tiny muted">less <i class="hc l0"></i><i class="hc l1"></i><i class="hc l2"></i><i class="hc l3"></i><i class="hc l4"></i> more</span>`}
+  </div>`;
+}
+
+function heatmap() { return hmMode === 'month' ? heatMonth() : heatYear(); }
+
+function heatYear() {
+  const narrow = (window.innerWidth || 1200) < 720;
+  const monthsBack = narrow ? 4 : 7;
+  const today = parseISO(todayISO());
+  const end = today.getTime();
+  /* start at the Sunday on/before the 1st of the earliest month → every month shown is complete */
+  const firstOfSpan = new Date(today.getFullYear(), today.getMonth() - (monthsBack - 1), 1);
+  const startSun = new Date(firstOfSpan.getTime() - firstOfSpan.getDay() * DAY);
+  const endSat = new Date(end + (6 - today.getDay()) * DAY);
+  const weeks = Math.round((endSat.getTime() - startSun.getTime()) / (7 * DAY)) + 1;
+
+  let cells = '', months = '';
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < 7; d++) {
+      const t = new Date(startSun.getTime() + (w * 7 + d) * DAY);
+      const iso = isoOf(t);
+      if (t.getTime() > end) { cells += `<span class="hc future" title="${fmtDY(iso)}"></span>`; continue; }
+      const l = S.logs[iso], h = l ? +l.hours || 0 : 0, lect = l ? +l.lectures || 0 : 0;
+      cells += `<span class="hc l${HLV(h)}" title="${fmtDY(iso)} · ${h ? fmtH(h) : 'no log'}${lect ? ` · ${lect} lect` : ''}"></span>`;
+    }
+    /* label the column that contains the 1st of a month → one label per month, never colliding */
+    for (let d = 0; d < 7; d++) {
+      const t = new Date(startSun.getTime() + (w * 7 + d) * DAY);
+      if (t.getDate() === 1) {
+        months += `<span style="grid-column:${w + 1} / span 4">${MON[t.getMonth()]}${t.getMonth() === 0 ? " '" + String(t.getFullYear()).slice(2) : ''}</span>`;
+        break;
+      }
+    }
+  }
+  const st = streaks();
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return `<div class="heat-scroll"><div class="heat-wrap">
+    <div class="heat-days">${DOW.map(d => `<span>${d}</span>`).join('')}</div>
+    <div class="heat-body">
+      <div class="heat-months">${months}</div>
+      <div class="heat">${cells}</div>
+    </div>
+  </div></div>
+  <div class="tiny muted mt6">Last ${monthsBack} months · ${st.daysLogged} days logged · ${fmtH(st.totalH)} total. Hover a square for the day; switch to <b>Month</b> for exact hours per day.</div>`;
+}
+
+function heatMonth() {
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + hmOff);
+  const y = base.getFullYear(), m = base.getMonth();
+  const first = new Date(y, m, 1), lastDay = new Date(y, m + 1, 0).getDate();
+  const lead = first.getDay();
+  const t = todayISO();
+  let cells = '';
+  let tot = 0, lect = 0, qs = 0, studied = 0, best = { h: 0, iso: null };
+  for (let d = 1; d <= lastDay; d++) {
+    const iso = isoOf(new Date(y, m, d));
+    const l = S.logs[iso];
+    const h = l ? +l.hours || 0 : 0;
+    if (h > 0) { studied++; tot += h; }
+    if (l) { lect += +l.lectures || 0; qs += +l.questions || 0; }
+    if (h > best.h) best = { h, iso };
+    const future = iso > t;
+    cells += `<button class="mc l${HLV(h)}${iso === t ? ' today' : ''}${future ? ' future' : ''}"${d === 1 ? ` style="grid-column-start:${lead + 1}"` : ''} data-action="hm-day" data-date="${iso}"
+      title="${fmtDY(iso)}${l ? ` · ${fmtH(h)} · ${+l.lectures || 0} lect · ${+l.questions || 0} q${l.note ? ' · ' + esc(l.note) : ''}` : ' · no log'}">
+      <b>${d}</b><span>${h ? (Math.round(h * 10) / 10) + 'h' : ''}</span></button>`;
+  }
+  const days = hmOff === 0 ? parseISO(t).getDate() : lastDay;
+  const planned = (() => { let a = 0; for (let d = 1; d <= days; d++) a += hoursFor(new Date(y, m, d)); return a; })();
+  return `<div class="month-wrap">
+    <div class="mcal-box">
+      <div class="mcal-head"><b>${first.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</b>
+        <span class="tiny muted">${studied}/${days} days · ${fmtH(tot)}</span></div>
+      <div class="mcal-dow">${['S','M','T','W','T','F','S'].map(d => `<span>${d}</span>`).join('')}</div>
+      <div class="mcal">${cells}</div>
+      <div class="tiny muted mt6">Tap any day to edit its log.${qs ? ` ${fmtN(qs)} questions solved this month.` : ''}</div>
+    </div>
+    <div class="month-stats">
+      <div class="statgrid">
+        <div class="stat"><b class="disp">${fmtH(tot)}</b><span>logged</span></div>
+        <div class="stat"><b class="disp">${studied}/${days}</b><span>days studied</span></div>
+        <div class="stat"><b class="disp ${tot >= planned ? 'ok-t' : 'bad-t'}">${tot >= planned ? '+' : '−'}${fmtH(Math.abs(tot - planned))}</b><span>vs plan</span></div>
+        <div class="stat"><b class="disp">${studied ? fmtH(tot / studied) : '—'}</b><span>avg / day</span></div>
+        <div class="stat"><b class="disp">${fmtN(lect)}</b><span>lectures</span></div>
+        <div class="stat"><b class="disp">${best.iso ? fmtD(best.iso) : '—'}</b><span>best${best.iso ? ` · ${fmtH(best.h)}` : ''}</span></div>
+      </div>
+      <div style="margin-top:12px">${bar(planned > 0 ? tot / planned : 0, tot >= planned ? 'var(--ok)' : 'var(--warn)')}</div>
+      <div class="tiny muted">Planned this month so far: ${fmtH(planned)} · logged ${fmtH(tot)} (${planned > 0 ? Math.round(tot / planned * 100) : 0}% adherence)</div>
+    </div>
+  </div>`;
+}
+
+function weekBars() {
+  const t = parseISO(todayISO()).getTime();
+  const names = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const arr = []; let max = 0;
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(t - i * DAY);
+    const l = S.logs[isoOf(d)], h = l ? +l.hours || 0 : 0;
+    max = Math.max(max, h); arr.push({ d, h });
+  }
+  const out = arr.map(a => {
+    const hp = max > 0 ? Math.max(6, a.h / max * 100) : 6;
+    return `<div class="wb" title="${fmtD(isoOf(a.d))} · ${fmtH(a.h)}"><i class="${a.h ? '' : 'z'}" style="height:${hp.toFixed(0)}%"></i><span>${names[a.d.getDay()]}</span></div>`;
+  }).join('');
+  return `<div class="wbars">${out}</div>`;
+}
+
+function splitChips(sp, H) {
+  const rows = [['Lectures', sp.lec, '#7C93FF'], ['Practice', sp.prac, '#34D3B1'], ['Revision', sp.rev, '#FFC554'], ['Mocks', sp.mock, '#FF8FB1']];
+  return `<div class="split-chips">${rows.map(r => `<span class="schip"><i style="background:${r[2]}"></i>${r[0]} <b>${fmtH(H * r[1])}</b></span>`).join('')}</div>`;
+}
+
+function allocDonut(sp, H) {
+  const segs = [['Lectures', sp.lec, '#7C93FF'], ['Practice', sp.prac, '#34D3B1'], ['Revision', sp.rev, '#FFC554'], ['Mocks', sp.mock, '#FF8FB1']];
+  let acc = 0;
+  const stops = segs.map(s => { const a = (acc * 100).toFixed(1); acc += s[1]; return `${s[2]} ${a}% ${(acc * 100).toFixed(1)}%`; }).join(',');
+  const chips = segs.map(s => `<div class="al-chip"><i style="background:${s[2]}"></i><div><b>${s[0]}</b><span>${Math.round(s[1] * 100)}% · ${fmtH(H * s[1])}/day</span></div></div>`).join('');
+  return `<div class="alloc"><div class="donut" style="background:conic-gradient(${stops})"><i></i><div class="donut-lb"><b>${fmtH(H)}</b><span>per day</span></div></div><div class="al-chips">${chips}</div></div>`;
+}
+
+function phaseTimeline(e) {
+  const days = e.days, cur = phaseFor(days);
+  const total = Math.max(days, 1);
+  let segs = '', rows = '', prev = days;
+  for (const p of PHASES) {
+    const hi = prev, lo = p.min, len = hi - lo;
+    if (len <= 0) { prev = Math.min(prev, lo); continue; }
+    const wp = len / total * 100;
+    const from = addDays(e.date, -hi), to = addDays(e.date, -lo);
+    const range = `${fmtD(from)} – ${fmtD(to)}`;
+    segs += `<div class="ph-seg${p === cur ? ' now' : ''}" style="width:${wp.toFixed(2)}%;--pc:${p.color}" title="${p.name} · ${range} · ${len} days"><i></i>${wp >= 13 ? `<span>${p.name}</span>` : ''}</div>`;
+    rows += `<div class="ph-row${p === cur ? ' now' : ''}">
+      <i style="background:${p.color}"></i>
+      <div class="ph-nm"><b>${p.name}</b>${p === cur ? '<span class="badge s-ok">you are here</span>' : ''}</div>
+      <div class="ph-dt">${range}</div>
+      <div class="ph-ln">${len} day${len === 1 ? '' : 's'}</div>
+      <div class="ph-sp">${Math.round(p.split.lec * 100)}/${Math.round(p.split.prac * 100)}/${Math.round(p.split.rev * 100)}/${Math.round(p.split.mock * 100)} · ${p.mocksWk}× ${p.mockType}/wk</div>
+    </div>`;
+    prev = lo;
+  }
+  return `<div class="phasebar">${segs}</div>
+    <div class="ph-axis"><span>Today · ${days} days left</span><span>${fmtD(e.date)} · exam day</span></div>
+    <div class="ph-legend">${rows}</div>
+    <div class="tiny muted mt6">Split = % of each day on lectures / practice / revision / mocks.</div>`;
+}
+
+function mockChart(list) {
+  const w = 640, h = 210, padL = 34, padR = 16, padT = 14, padB = 26;
+  const xs = i => padL + (w - padL - padR) * (list.length === 1 ? .5 : i / (list.length - 1));
+  const vals = list.map(m => pct(+m.score || 0, +m.total || 100) * 100);
+  const ymax = Math.max(60, Math.ceil(Math.max(...vals) / 10) * 10);
+  const ys = v => padT + (h - padT - padB) * (1 - v / ymax);
+  let grid = '';
+  for (let g = 0; g <= 4; g++) {
+    const v = ymax * g / 4, y = ys(v);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" class="mg"/><text x="${padL - 7}" y="${(y + 3).toFixed(1)}" text-anchor="end" class="mct">${Math.round(v)}</text>`;
+  }
+  const P = list.map((m, i) => [xs(i), ys(vals[i])]);
+  const line = P.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = `M${P[0][0].toFixed(1)},${h - padB} ` + P.map(p => `L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ') + ` L${P[P.length - 1][0].toFixed(1)},${h - padB} Z`;
+  let dots = '';
+  list.forEach((m, i) => {
+    dots += `<circle cx="${P[i][0].toFixed(1)}" cy="${P[i][1].toFixed(1)}" r="4.5" class="md ${m.exam === 'da' ? 'da' : 'cse'}"><title>${esc(m.name || 'Mock')} · ${fmtD(m.date)} · ${vals[i].toFixed(0)}%</title></circle>`;
+  });
+  const xlab = `<text x="${padL}" y="${h - 8}" class="mct">${fmtD(list[0].date)}</text><text x="${w - padR}" y="${h - 8}" text-anchor="end" class="mct">${fmtD(list[list.length - 1].date)}</text>`;
+  return `<svg class="mockchart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Mock score trend">${grid}${xlab}<path d="${area}" class="ma"/><polyline points="${line}" class="ml"/>${dots}</svg>`;
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+let view = 'dashboard';
+let subjFilter = 'all', subjSort = 'default', subjQuery = '';
+let mockFilter = 'all';
+let whatIf = null;
+let logEdit = null;
+
+const NAV = [
+  ['dashboard', 'Dashboard', 'dash'], ['subjects', 'Subjects', 'book'],
+  ['planner', 'Planner', 'target'],  ['insights', 'Insights', 'trend'],
+  ['log', 'Daily Log', 'cal'],       ['mocks', 'Mocks', 'gauge'],
+  ['settings', 'Settings', 'gear'],
+];
+function renderNav() {
+  $('#side-nav').innerHTML = NAV.map(n =>
+    `<button class="nav-btn${view === n[0] ? ' active' : ''}" data-action="nav" data-view="${n[0]}">${icon(n[2])}<span>${n[1]}</span></button>`).join('');
+  $('#bottom-nav').innerHTML = NAV.slice(0, 6).map(n =>
+    `<button class="bn-btn${view === n[0] ? ' active' : ''}" data-action="nav" data-view="${n[0]}">${icon(n[2])}<span>${n[1].split(' ')[0]}</span></button>`).join('');
+}
+function go(v) { view = v; renderAll(); window.scrollTo({ top: 0 }); }
+function renderAll() {
+  renderNav();
+  $$('.view').forEach(el => el.classList.toggle('active', el.dataset.view === view));
+  const r = { dashboard: renderDashboard, subjects: renderSubjects, planner: renderPlanner, insights: renderInsights, log: renderLog, mocks: renderMocks, settings: renderSettings }[view];
+  if (r) r();
+  tick();
+  renderTimer();
+}
+
+/* live countdown */
+function tick() {
+  const now = Date.now();
+  $$('[data-count]').forEach(card => {
+    const e = examMeta(card.dataset.count);
+    let ms = parseISO(e.date).getTime() - now;
+    if (ms <= 0) return;
+    const d = Math.floor(ms / DAY); ms -= d * DAY;
+    const h = Math.floor(ms / 3600000); ms -= h * 3600000;
+    const m = Math.floor(ms / 60000);
+    const dEl = card.querySelector('.cd-d'), hm = card.querySelector('.cd-hm');
+    if (dEl) dEl.textContent = d;
+    if (hm) hm.textContent = `+ ${h}h ${pad2(m)}m`;
+  });
+}
+
+/* ---------- Dashboard ---------- */
+function countCard(e, wide) {
+  const body = e.days < 0
+    ? `<div class="count-done">${icon('check')}<span>This exam day has passed — set your next target in Settings.</span></div>`
+    : e.days === 0
+    ? `<div class="count-num"><span class="disp cd-d" style="font-size:2.2rem">Exam day.</span></div><div class="count-sub tiny muted">Calm mind, easy marks first. Go get it.</div>`
+    : `<div class="count-num"><span class="disp cd-d">${Math.floor((parseISO(e.date).getTime() - Date.now()) / DAY)}</span><span class="count-lbl">days</span></div>
+       <div class="count-sub tiny muted"><span class="cd-hm">…</span> · ${phaseFor(e.days).name} phase</div>`;
+  return `<div class="card pad count-card ${wide ? 'c6' : 'c4'}" data-count="${e.key}">
+    <div class="card-h"><span class="badge b-${e.key}">${e.label}</span><span class="tiny muted">${fmtDY(e.date)}</span></div>${body}</div>`;
+}
+
+function renderDashboard() {
+  const el = $('#view-dashboard');
+  const p = pacing();
+  const exs = activeExams();
+  const wide = exs.length === 1;
+
+  let banners = '';
+  if (!storage.ok) banners += `<div class="banner warn c12">${icon('alert')}<div><b>Preview mode — browser storage is unavailable here.</b> Progress won't persist. Deploy the file to GitHub Pages (see README) and everything saves automatically.</div></div>`;
+  if (S.flags.welcome) banners += `<div class="banner c12">${icon('spark')}<div><b>Welcome to Ascent.</b> Subjects come pre-loaded with GO Classes–style lecture counts — approximations, edit any of them to match your batch. First stop: exam dates & daily hours in Settings.</div><button class="btn sm" data-action="nav" data-view="settings">Open Settings</button><button class="icon-btn" data-action="dismiss-welcome" aria-label="Dismiss">${icon('x')}</button></div>`;
+
+  const counts = exs.map(e => countCard(e, wide)).join('');
+
+  let paceCard;
+  if (p) {
+    const cover = p.needH > 0 ? clamp(p.availLecH / p.needH, 0, 1) : 1;
+    const barColor = p.status === 'bad' ? 'var(--bad)' : p.status === 'warn' ? 'var(--warn)' : undefined;
+    const tArrow = p.trend ? (p.trend.dir === 'down' ? `<span class="badge s-ok">↓ ${fmtH(Math.abs(p.trend.delta))} vs last week</span>`
+                            : p.trend.dir === 'up' ? `<span class="badge s-bad">↑ ${fmtH(p.trend.delta)} vs last week</span>`
+                            : '<span class="badge s-ok">steady</span>') : '';
+    const adjTxt = Math.abs(p.adj) < .05 ? 'you are exactly on your planned hours'
+      : p.adj < 0 ? `<b class="ok-t">−${fmtH(-p.adj)}</b> credited back — you're ${fmtH(-p.dbt.debt)} ahead of your own plan`
+      : `<b class="bad-t">+${fmtH(p.adj)}</b> added — ${fmtH(p.dbt.debt)} of debt spread over ${p.dbt.window} days`;
+    paceCard = `<div class="card pad ${wide ? 'c6' : 'c4'}">
+      <div class="card-h"><span class="card-t">${icon('zap')} Required pace <span class="tiny muted">· adaptive</span></span>${statusBadge(p.status)}</div>
+      ${p.remLect === 0
+        ? `<div class="kpi"><span class="kpi-num disp">Done</span><span class="kpi-sub">all lectures finished</span></div>
+           <div class="small muted mt6">Your full ${fmtH(p.todayH)} today belongs to practice, revision and mocks.</div>`
+        : `<div class="kpi"><span class="kpi-num disp">${fmtH(p.adaptive)}</span><span class="kpi-sub">today · ${tArrow}</span></div>
+           <div class="small muted mt6">Baseline <b>${fmtH(p.totalNeeded)}</b>/day, ${adjTxt}.</div>
+           ${bar(cover, barColor)}
+           <div class="tiny muted">${fmtN(p.remLect)} lectures left · ${fmtH(p.needH)}/day of lectures (≈${p.lectPerDay.toFixed(1)}/day) · finish by ${fmtD(addDays(p.nearest.date, -p.buf))}</div>
+           <div class="tiny muted mt6"><button class="btn sm ghost" data-action="nav" data-view="planner">How is this computed?</button></div>`}
+    </div>`;
+  } else {
+    paceCard = `<div class="card pad ${wide ? 'c6' : 'c4'}">
+      <div class="card-h"><span class="card-t">${icon('zap')} Required pace</span></div>
+      <p class="small muted">No upcoming exam date. Set one in Settings and pacing lights up.</p>
+      <div class="mt6"><button class="btn sm" data-action="nav" data-view="settings">Open Settings</button></div></div>`;
+  }
+
+  const lt = lecTotals(activeSubjects());
+  const rings = exs.map(e => `<div class="ring-cell">${ring(weightedProgress(e.key), {
+    size: 102, stroke: 9, label: e.short + ' · weighted',
+    c1: e.key === 'cse' ? '#7C93FF' : '#34D3B1', c2: e.key === 'cse' ? '#5EC8F2' : '#8FD16E',
+  })}</div>`).join('');
+  const progressCard = `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('trend')} Syllabus progress</span></div>
+    <div class="rings">${rings}</div>
+    <div class="tiny muted center">${fmtN(lt.done)} / ${fmtN(lt.total)} lectures · ≈${fmtH(lt.remH)} of watching left</div></div>`;
+
+  const phaseCard = p ? `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('flag')} Current phase</span>
+      <span class="badge" style="background:${p.phase.color}22;color:${p.phase.color};border-color:${p.phase.color}66">${p.phase.name}</span></div>
+    <div class="tiny muted">${p.phase.range} · driven by ${p.nearest.label} (${p.nearest.days}d)</div>
+    ${splitChips(p.phase.split, p.H)}
+    <div class="tiny muted mt6">${p.phase.mocksWk}× ${p.phase.mockType}${p.phase.mocksWk > 1 ? 's' : ''} per week</div></div>` : '';
+
+  const st = streaks();
+  const streakCard = `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('flame')} Streak</span><span class="tiny muted">best ${st.best}d</span></div>
+    <div class="kpi"><span class="kpi-num disp">${st.cur}</span><span class="kpi-sub">day${st.cur === 1 ? '' : 's'} in a row</span></div>
+    ${weekBars()}
+    <div class="tiny muted">${fmtH(st.totalH)} logged · ${fmtN(st.totalL)} lectures · ${fmtN(st.totalQ)} questions</div></div>`;
+
+  const plan = todaysPlan();
+  const checks = planChecksToday();
+  const planCard = `<div class="card pad c7">
+    <div class="card-h"><span class="card-t">${icon('spark')} Today's plan</span>
+      <span class="frow g8">
+        ${plan.edited ? `<button class="btn sm ghost" data-action="plan-reset">${icon('rotate')} Reset</button>` : ''}
+        <button class="btn sm" data-action="plan-add">${icon('plus')} Add task</button>
+      </span></div>
+    <div class="plan-list">${plan.items.length ? plan.items.map(it => `
+      <div class="plan-item${checks[it.id] ? ' done' : ''}" data-pid="${esc(it.id)}">
+        <label class="pi-main">
+          <input type="checkbox" data-action="plan-check" data-pid="${esc(it.id)}"${checks[it.id] ? ' checked' : ''}>
+          <span class="pi-ic">${icon(it.ic)}</span>
+          <span class="pi-tx"><b>${esc(it.text)}</b><span>${esc(it.meta || '')}${it.repeat ? ' · repeats daily' : ''}</span></span>
+        </label>
+        <span class="pi-hint tiny muted">tap ✎ to edit</span>
+        <span class="pi-acts">
+          <button class="icon-btn" data-action="plan-edit" title="Edit task" aria-label="Edit task">${icon('pencil')}</button>
+          <button class="icon-btn del" data-action="plan-del" title="Remove task" aria-label="Remove task">${icon('trash')}</button>
+        </span>
+      </div>`).join('') : `<p class="small muted">Plan is empty — add a task, or hit Reset to bring back the auto-plan.</p>`}</div>
+    <div class="tiny muted mt6">${fmtDY(todayISO())} · auto-built from your phase, progress and weightage. Edit or delete anything — changes apply to today; tick <b>repeat daily</b> to keep a task on every future day too.</div></div>`;
+
+  const tl = S.logs[todayISO()] || {};
+  const quickCard = `<div class="card pad c5">
+    <div class="card-h"><span class="card-t">${icon('cal')} Log today</span>${hasLog(todayISO()) ? '<span class="badge s-ok">logged</span>' : ''}</div>
+    <form id="quick-log" class="qform">
+      <div class="field"><label>Hours</label><input class="input" name="hours" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="${tl.hours ?? ''}" placeholder="0"></div>
+      <div class="field"><label>Lectures</label><input class="input" name="lectures" type="number" inputmode="numeric" min="0" step="1" value="${tl.lectures ?? ''}" placeholder="0"></div>
+      <div class="field"><label>Questions</label><input class="input" name="questions" type="number" inputmode="numeric" min="0" step="1" value="${tl.questions ?? ''}" placeholder="0"></div>
+      <button class="btn primary" type="submit">Save day</button>
+    </form>
+    <div class="tiny muted mt6">The +/− steppers in Subjects auto-count lectures into today's log.</div></div>`;
+
+  const rd = readiness();
+  const readyCard = `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('gauge')} Readiness</span>
+      <button class="btn sm ghost" data-action="nav" data-view="insights">Details</button></div>
+    <div class="kpi"><span class="kpi-num disp">${Math.round(rd.score)}</span><span class="kpi-sub">/ 100</span></div>
+    ${bar(rd.score / 100, rd.score >= 70 ? 'var(--ok)' : rd.score >= 45 ? 'var(--warn)' : 'var(--bad)')}
+    <div class="tiny muted">Biggest lever: <b>${esc(rd.gap.label)}</b> — ${esc(rd.gap.hint)}</div></div>`;
+
+  const due = revDue();
+  const upc = revUpcoming().filter(x => x.r.dueIn > 0).slice(0, 3);
+  const revCard = `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('rotate')} Revision queue</span>
+      ${due.length ? `<span class="badge s-warn">${due.length} due</span>` : upc.length ? '<span class="badge s-ok">clear</span>' : ''}</div>
+    ${due.length ? `<div class="plan-list">${due.slice(0, 3).map(x => `
+        <div class="plan-item">
+          <span class="pi-ic">${icon('rotate')}</span>
+          <span class="pi-tx"><b>${esc(x.s.name)}</b><span>pass ${x.r.pass} · ${x.r.dueIn === 0 ? 'due today' : `${-x.r.dueIn}d overdue`}</span></span>
+          <span class="pi-acts"><button class="btn sm" data-action="rev-done" data-id="${x.s.id}">Done</button></span>
+        </div>`).join('')}</div>`
+      : upc.length ? `<div class="small muted">Nothing due today. Next up:</div>
+        <div class="split-chips">${upc.map(x => `<span class="schip"><i style="background:${x.s.color}"></i>${esc(x.s.name)} <b>in ${x.r.dueIn}d</b></span>`).join('')}</div>`
+      : `<p class="small muted">Finish a subject and Ascent schedules its revisions at ${revIntervals().join(' / ')} days — the forgetting curve, handled.</p>`}
+  </div>`;
+
+  const tsubs = activeSubjects().filter(s => (+s.done || 0) < (+s.total || 0));
+  const timerCard = `<div class="card pad c4">
+    <div class="card-h"><span class="card-t">${icon('play')} Focus block</span><span class="tiny muted">auto-logs your hours</span></div>
+    <div class="timer-wrap">
+      <div class="timer-face"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg" stroke-width="8"/>
+        <circle id="timer-ring" cx="60" cy="60" r="52" class="ring-fg" stroke="var(--acc)" stroke-width="8" stroke-linecap="round" transform="rotate(-90 60 60)"/></svg>
+        <b class="disp" id="timer-face">--:--</b></div>
+      <div class="timer-side">
+        <select class="input" id="timer-sub" aria-label="Subject">
+          <option value="">No subject</option>
+          ${tsubs.map(s => `<option value="${s.id}"${S.timer && S.timer.sid === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('')}
+        </select>
+        <input class="input" id="timer-min" type="number" min="10" max="180" step="5" value="${S.timer ? S.timer.mins : (+S.settings.pomoWork || 50)}" aria-label="Minutes">
+        <div class="frow g8" id="timer-btns"></div>
+      </div>
+    </div></div>`;
+
+  const heatCard = `<div class="card pad c12">
+    <div class="card-h"><span class="card-t">${icon('cal')} Consistency</span>${heatHead()}</div>
+    ${heatmap()}</div>`;
+
+  const sub = p
+    ? `${p.nearest.days} days to ${p.nearest.label}. ${p.remLect > 0 ? fmtN(p.remLect) + ' lectures between you and done — every session counts.' : 'Lectures done. Now sharpen the blade.'}`
+    : 'Set your exam dates in Settings and the whole machine lights up.';
+  el.innerHTML = `<div class="vhead"><div><h1>Dashboard</h1><p class="vsub">${sub}</p></div>
+    <div class="vact"><button class="btn ghost sm" data-action="palette">⌘K</button></div></div>
+    <div class="grid">${banners}${counts}${paceCard}${readyCard}${progressCard}${phaseCard}${streakCard}${planCard}${quickCard}${revCard}${timerCard}${heatCard}</div>`;
+  renderTimer();
+}
+
+/* ---------- Subjects ---------- */
+function weightLabel(s) {
+  if (s.exam === 'both') return `${+s.wc || 0}·${+s.wd || 0} marks`;
+  return (s.exam === 'cse' ? +s.wc || 0 : +s.wd || 0) + ' marks';
+}
+function subjectCard(s) {
+  const p = pct(s.done, s.total);
+  const off = !subjectVisible(s);
+  return `<div class="card subj${off ? ' inactive' : ''}" data-id="${s.id}" style="--sc:${s.color || '#7C93FF'}">
+    <div class="subj-top"><div>
+      <div class="subj-name">${esc(s.name)}</div>
+      <div class="subj-meta">${badgeExam(s.exam)}<span class="tiny muted">W ${weightLabel(s)}</span><span class="tiny muted rem-h">≈${fmtH(remHrs(s))} left</span>${off ? '<span class="badge s-warn">off-plan</span>' : ''}</div>
+    </div>
+    <div class="subj-acts">
+      <button class="icon-btn" data-action="sub-edit" aria-label="Edit ${esc(s.name)}">${icon('pencil')}</button>
+      <button class="icon-btn" data-action="sub-del" aria-label="Delete ${esc(s.name)}">${icon('trash')}</button>
+    </div></div>
+    <div class="lect-row">
+      <div class="stepper">
+        <button class="step-b" data-action="sub-dec" aria-label="One lecture less">${icon('minus')}</button>
+        <input class="step-in" data-action="sub-set" type="number" inputmode="numeric" min="0" max="${s.total}" value="${+s.done || 0}" aria-label="Lectures done">
+        <span class="step-t">/ ${s.total}</span>
+        <button class="step-b" data-action="sub-inc" aria-label="One lecture more">${icon('plus')}</button>
+      </div>
+      <span class="subj-pct disp">${Math.round(p * 100)}%</span>
+    </div>
+    ${bar(p)}
+    <div class="subj-foot">
+      <span class="tiny muted">PYQ</span>
+      <input class="input mini" data-action="pyq-set" type="number" inputmode="numeric" min="0" value="${+s.pyqDone || 0}" aria-label="PYQs done">
+      <span class="tiny muted">/ ${+s.pyqTotal || 0}</span>
+      <span class="spacer"></span>
+      <span class="tiny muted">Rev</span>
+      <span class="rev-chips">${[1, 2, 3].map(n => `<button class="rev-chip${(+s.rev || 0) >= n ? ' on' : ''}" data-action="rev-set" data-n="${n}" aria-label="Revision ${n}">R${n}</button>`).join('')}</span>
+    </div></div>`;
+}
+function subjSubText() {
+  const lt = lecTotals(activeSubjects());
+  let pyqT = 0, pyqD = 0;
+  activeSubjects().forEach(s => { pyqT += +s.pyqTotal || 0; pyqD += Math.min(+s.pyqDone || 0, +s.pyqTotal || 0); });
+  return `${fmtN(lt.rem)} lectures to go · ≈${fmtH(lt.remH)} of watching · PYQs ${fmtN(pyqD)}/${fmtN(pyqT)}`;
+}
+function sumBarsHtml() {
+  return activeExams().map(e => {
+    const w = weightedProgress(e.key), t = lecTotals(subjectsForExam(e.key));
+    return `<div class="sum-row"><span class="badge b-${e.key}">${e.short}</span>
+      <div class="sum-bar">${bar(w, e.key === 'cse' ? '#7C93FF' : '#34D3B1')}</div>
+      <span class="small"><b>${Math.round(w * 100)}%</b> weighted · ${t.done}/${t.total} lect</span></div>`;
+  }).join('');
+}
+function renderSubjects() {
+  const el = $('#view-subjects');
+  el.innerHTML = `<div class="vhead"><div><h1>Subjects</h1><p class="vsub" id="subj-substats">${subjSubText()}</p></div>
+    <div class="vact"><button class="btn primary" data-action="sub-add">${icon('plus')} Add subject</button></div></div>
+    <div class="card pad sum-card" id="sum-bars">${sumBarsHtml()}</div>
+    <div class="toolbar">
+      <div class="seg">${['all', 'both', 'cse', 'da'].map(f => `<button class="seg-b${subjFilter === f ? ' active' : ''}" data-action="sub-filter" data-f="${f}">${({ all: 'All', both: 'Common', cse: 'CSE', da: 'DA' })[f]}</button>`).join('')}</div>
+      <input class="input search" id="subj-q" type="search" placeholder="Search subjects…" value="${esc(subjQuery)}">
+      <select class="input select" data-action="sub-sort" aria-label="Sort subjects">
+        ${[['default', 'Sort: default'], ['progress', 'Least complete'], ['remaining', 'Most hours left'], ['weight', 'Highest weight']].map(o => `<option value="${o[0]}"${subjSort === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}
+      </select>
+    </div>
+    <div class="subj-grid" id="subj-list"></div>`;
+  renderSubjectList();
+  const q = $('#subj-q');
+  q.addEventListener('input', () => { subjQuery = q.value; renderSubjectList(); });
+}
+function renderSubjectList() {
+  let list = S.subjects.slice();
+  if (subjFilter !== 'all') list = list.filter(s => s.exam === subjFilter);
+  if (subjQuery.trim()) { const q = subjQuery.trim().toLowerCase(); list = list.filter(s => s.name.toLowerCase().includes(q)); }
+  if (subjSort === 'progress') list.sort((a, b) => pct(a.done, a.total) - pct(b.done, b.total));
+  else if (subjSort === 'remaining') list.sort((a, b) => remHrs(b) - remHrs(a));
+  else if (subjSort === 'weight') list.sort((a, b) => wMax(b) - wMax(a));
+  const box = $('#subj-list');
+  box.innerHTML = list.length ? list.map(subjectCard).join('')
+    : `<div class="empty">${icon('book')}<b>No subjects match.</b><span>Try another filter or search — or add a new subject.</span></div>`;
+}
+function refreshSubjectCard(card, s) {
+  if (!card) return;
+  const p = pct(s.done, s.total);
+  const inp = card.querySelector('.step-in'); if (inp) inp.value = +s.done || 0;
+  const pc = card.querySelector('.subj-pct'); if (pc) pc.textContent = Math.round(p * 100) + '%';
+  const bf = card.querySelector('.bar-f');    if (bf) bf.style.width = (p * 100).toFixed(1) + '%';
+  const rh = card.querySelector('.rem-h');    if (rh) rh.textContent = `≈${fmtH(remHrs(s))} left`;
+  const ss = $('#subj-substats'); if (ss) ss.textContent = subjSubText();
+  const sb = $('#sum-bars');      if (sb) sb.innerHTML = sumBarsHtml();
+}
+
+/* ---------- Planner ---------- */
+function verdictText(p, proj) {
+  const tgt = fmtD(addDays(p.nearest.date, -p.buf));
+  let s = '';
+  if (p.remLect === 0) {
+    s = `All lectures are done. Your ${fmtH(p.H)}/day now goes fully into practice, revision and mocks — ride the phase split above and keep the mock cadence honest.`;
+  } else {
+    s = `To finish all <b>${fmtN(p.remLect)}</b> remaining lectures by <b>${tgt}</b> (keeping a ${p.buf}-day buffer for pure revision + mocks), you need <b>${fmtH(p.needH)}/day of lecture time</b> — about ${p.lectPerDay.toFixed(1)} lectures at ${p.eff} min each. `;
+    const diff = p.needH - p.availLecH;
+    if (p.status === 'ok') s += `Your current budget covers it${diff < -0.4 ? ` with ${fmtH(-diff)}/day to spare — bank the surplus as extra practice` : ''}.`;
+    else if (p.status === 'warn') s += `You're short by <b>${fmtH(diff)}/day</b>. Add ~${Math.ceil(diff * 6) * 10} focused minutes daily, or trim low-weight topics.`;
+    else s += `You're short by <b>${fmtH(diff)}/day</b> — at this budget the syllabus won't close in time. Raise daily hours, cut low-weight subjects, or shrink the buffer in Settings.`;
+  }
+  if (proj.ready) s += ` At your actual 14-day pace (${proj.pace.lectPerDay.toFixed(1)} lect/day), you'd finish around <b>${fmtD(proj.finish)}</b> — <span class="${proj.ok ? 'ok-t' : 'bad-t'}">${proj.ok ? 'ahead of target' : 'past target'}</span>.`;
+  else if (p.remLect > 0) s += ` Log a few days and the planner will also project your finish date from your real pace.`;
+  return s;
+}
+function whatIfText(p, h) {
+  if (p.remLect === 0) return '<span class="muted">Lectures are done — extra hours flow straight into practice, revision and mocks.</span>';
+  const lecH = h * p.phase.split.lec;
+  if (lecH <= .05) return '';
+  const remH = p.remLect * p.eff / 60;
+  const days = Math.ceil(remH / lecH);
+  const fin = addDays(todayISO(), days);
+  const tgt = addDays(p.nearest.date, -p.buf);
+  const slack = Math.round((parseISO(tgt).getTime() - parseISO(fin).getTime()) / DAY);
+  const ok = slack >= 0;
+  const baseDays = p.availLecH > 0 ? Math.ceil(remH / p.availLecH) : null;
+  const diff = baseDays != null ? baseDays - days : 0;
+  const left = Math.max(0, p.nearest.days - days);
+  let s = `At <b>${fmtH(h)}/day</b> (${fmtH(lecH)} of it on lectures at this phase's split), the remaining ${fmtN(p.remLect)} lectures take <b>${fmtN(days)} day${days === 1 ? '' : 's'}</b> — syllabus done around <b>${fmtD(fin)}</b>, <span class="${ok ? 'ok-t' : 'bad-t'}">${ok ? `${slack} day${slack === 1 ? '' : 's'} inside` : `${-slack} day${slack === -1 ? '' : 's'} past`}</span> your ${fmtD(tgt)} target.`;
+  if (baseDays != null && diff !== 0) s += ` That's <b>${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} ${diff > 0 ? 'sooner' : 'later'}</b> than your current ${fmtH(p.H)}/day plan (${fmtN(baseDays)} days).`;
+  s += ` Leaves <b>${fmtN(left)} day${left === 1 ? '' : 's'}</b> before ${p.nearest.short} for pure practice, revision and mocks.`;
+  return s;
+}
+
+function examPaceCard(e, p) {
+  const list = subjectsForExam(e.key).filter(subjectVisible);
+  const t = lecTotals(list);
+  const d = p.dEff[e.key];
+  const need = t.remH / d;
+  const w = weightedProgress(e.key);
+  return `<div class="card pad c6">
+    <div class="card-h"><span class="badge b-${e.key}">${e.label}</span><span class="tiny muted">${e.days}d left · finish lectures by ${fmtD(addDays(e.date, -p.buf))}</span></div>
+    <div class="frow">
+      <div class="mini-ring">${ring(w, { size: 78, stroke: 8, label: 'weighted', c1: e.key === 'cse' ? '#7C93FF' : '#34D3B1', c2: e.key === 'cse' ? '#5EC8F2' : '#8FD16E' })}</div>
+      <div class="small" style="min-width:0">
+        <div><b>${t.done}/${t.total}</b> lectures done · ${fmtN(t.rem)} left (≈${fmtH(t.remH)})</div>
+        <div class="muted mt6">Needs <b>${fmtH(need)}</b>/day of lecture time for its syllabus${S.settings.mode === 'both' ? ' <span class="tiny">(common subjects counted in both cards)</span>' : ''}</div>
+      </div></div></div>`;
+}
+function weekTemplate(p) {
+  const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dows = [1, 2, 3, 4, 5, 6, 0];
+  const md = MOCK_DAYS[p.phase.mocksWk] || [];
+  const sp = p.phase.split, H = p.H, today = new Date().getDay();
+  return `<div class="week">${names.map((nm, i) => {
+    const dow = dows[i], mock = md.includes(dow);
+    const chips = mock
+      ? `<span class="schip mockday"><i style="background:#FF8FB1"></i>${p.phase.mockType} + same-day analysis</span><span class="schip"><i style="background:#FFC554"></i>Light revision <b>${fmtH(Math.max(1, H * .25))}</b></span>`
+      : `<span class="schip"><i style="background:#7C93FF"></i>Lectures <b>${fmtH(H * sp.lec)}</b></span><span class="schip"><i style="background:#34D3B1"></i>Practice <b>${fmtH(H * (sp.prac + sp.mock))}</b></span><span class="schip"><i style="background:#FFC554"></i>Revision <b>${fmtH(H * sp.rev)}</b></span>`;
+    return `<div class="wk-row${dow === today ? ' today' : ''}"><span class="wk-d">${nm}${dow === today ? '<i>today</i>' : ''}</span><div class="wk-chips">${chips}</div></div>`;
+  }).join('')}</div>`;
+}
+function renderPlanner() {
+  const el = $('#view-planner');
+  const p = pacing();
+  if (!p) {
+    el.innerHTML = `<div class="vhead"><div><h1>Planner</h1><p class="vsub">Pace, phases and time allocation — recalculated live from your progress.</p></div></div>
+      <div class="empty">${icon('flag')}<b>No upcoming exam.</b><span>Set an exam date in Settings and the plan builds itself.</span>
+      <button class="btn primary" data-action="nav" data-view="settings">Open Settings</button></div>`;
+    return;
+  }
+  const proj = projection(p);
+  if (whatIf == null) whatIf = p.H;
+  const sp = p.phase.split;
+  el.innerHTML = `<div class="vhead"><div><h1>Planner</h1><p class="vsub">Pace, phases and time allocation — recalculated live from your progress.</p></div></div>
+  <div class="grid">
+    <div class="card pad c12 verdict">
+      <div class="card-h"><span class="card-t">${icon('zap')} The one number that matters</span>${statusBadge(p.status)}</div>
+      <div class="verdict-num"><span class="disp">${p.remLect === 0 ? 'Practice mode' : fmtH(p.adaptive)}</span>
+        <span class="kpi-sub">${p.remLect === 0 ? 'lectures complete' : `/day · split ${Math.round(sp.lec * 100)} / ${Math.round(sp.prac * 100)} / ${Math.round(sp.rev * 100)} / ${Math.round(sp.mock * 100)} across lectures · practice · revision · mocks`}</span></div>
+      <p class="small">${verdictText(p, proj)}</p>
+    </div>
+    ${p.ex.map(e => `<div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('flag')} Road to ${e.label}</span><span class="tiny muted">${fmtDY(e.date)} · ${e.days} days out</span></div>
+      ${phaseTimeline(e)}
+      <p class="tiny muted mt6">${phaseFor(e.days).tip}</p>
+    </div>`).join('')}
+    <div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('book')} How today's number is computed</span></div>
+      ${paceMath(p)}
+    </div>
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('clock')} Daily allocation — ${p.phase.name}</span></div>
+      ${allocDonut(sp, p.H)}
+      <div class="tiny muted mt6">Mocks: ${p.phase.mocksWk}× ${p.phase.mockType}${p.phase.mocksWk > 1 ? 's' : ''} per week — always with same-day analysis.</div>
+    </div>
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('gauge')} What-if: change your daily hours</span></div>
+      <div class="whatif"><input type="range" id="whatif" min="2" max="14" step="0.5" value="${whatIf}" aria-label="What-if daily hours"><span class="disp" id="whatif-v">${fmtH(whatIf)}</span></div>
+      <div id="whatif-out" class="small"></div>
+      <div class="tiny muted mt6">Sandbox only — your real setting lives in Settings.</div>
+    </div>
+    ${p.ex.map(e => examPaceCard(e, p)).join('')}
+    <div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('cal')} Weekly rhythm — ${p.phase.name}</span></div>
+      ${weekTemplate(p)}
+    </div>
+  </div>`;
+  const r = $('#whatif');
+  const upd = () => { whatIf = +r.value; $('#whatif-v').textContent = fmtH(whatIf); $('#whatif-out').innerHTML = whatIfText(p, whatIf); };
+  r.addEventListener('input', upd);
+  upd();
+}
+
+function mathRow(n, label, val, note) {
+  return `<div class="mrow"><span class="mno">${n}</span><div class="mtx"><b>${label}</b><span class="tiny muted">${note}</span></div><span class="mval disp">${val}</span></div>`;
+}
+function paceMath(p) {
+  const tgt = addDays(p.nearest.date, -p.buf);
+  const sp = p.phase.split;
+  const dbt = p.dbt;
+  return `<div class="mathbox">
+    ${mathRow(1, 'Work left', `${fmtN(p.remLect)} lect`,
+      `${fmtN(p.remLect)} lectures × ${p.eff} min each = ${fmtH(p.remLect * p.eff / 60)} of watching`)}
+    ${mathRow(2, 'Days to do it in', `${Math.max(1, p.nearest.days - p.buf)} d`,
+      `${p.nearest.days} days to ${p.nearest.short} − ${p.buf}-day revision buffer → lectures must end ${fmtD(tgt)}`)}
+    ${mathRow(3, 'Lecture hours needed', `${fmtH(p.needH)}/day`,
+      `each subject is paced against its own deadline; shared subjects use the nearer exam`)}
+    ${mathRow(4, 'Scale up by phase split', `${fmtH(p.totalNeeded)}/day`,
+      `in ${p.phase.name}, lectures are only ${Math.round(sp.lec * 100)}% of a study day → ${fmtH(p.needH)} ÷ ${(sp.lec).toFixed(2)} = ${fmtH(p.totalNeeded)} total`)}
+    ${mathRow(5, 'Adapt to what you actually did', `${p.adj >= 0 ? '+' : '−'}${fmtH(Math.abs(p.adj))}`,
+      dbt.ready
+        ? `planned ${fmtH(dbt.expected)} over ${dbt.days} days, you logged ${fmtH(dbt.logged)} → ${dbt.debt >= 0 ? `${fmtH(dbt.debt)} behind, spread over ${dbt.window} days` : `${fmtH(-dbt.debt)} ahead, credited back (capped at 1.5h)`}`
+        : 'needs 3+ logged days before it kicks in')}
+    <div class="mrow total"><span class="mno">=</span><div class="mtx"><b>Today's target</b><span class="tiny muted">recomputed every time you log, tick a lecture, or a day passes</span></div><span class="mval disp">${fmtH(p.adaptive)}</span></div>
+  </div>
+  <p class="tiny muted mt6">Study more than the plan and the number falls tomorrow — both because lectures left shrink and because the surplus is credited back. Study less and it climbs, so the deficit never quietly disappears. Your budget for comparison: ${fmtH(S.settings.hoursWk)} on weekdays, ${fmtH(S.settings.hoursWe)} on weekends (${fmtH(p.H)} average).</p>`;
+}
+
+/* ---------- Daily Log ---------- */
+function statCell(v, l) { return `<div class="stat"><b class="disp">${v}</b><span>${l}</span></div>`; }
+function logRows() {
+  const keys = Object.keys(S.logs).sort().reverse().slice(0, 90);
+  if (!keys.length) return `<div class="empty">${icon('cal')}<b>Nothing logged yet.</b><span>Save today's entry — every streak starts with one.</span></div>`;
+  return `<div class="rows">${keys.map(k => { const l = S.logs[k]; return `
+    <div class="row log-r"><span class="r-date">${fmtD(k)}</span>
+      <span class="r-kv"><b>${fmtH(+l.hours || 0)}</b></span>
+      <span class="r-kv muted">${+l.lectures || 0} lect</span>
+      <span class="r-kv muted">${+l.questions || 0} q</span>
+      <span class="r-note muted">${esc(l.note || '')}</span>
+      <span class="r-act">
+        <button class="icon-btn" data-action="log-edit" data-date="${k}" aria-label="Edit ${fmtD(k)}">${icon('pencil')}</button>
+        <button class="icon-btn" data-action="log-del" data-date="${k}" aria-label="Delete ${fmtD(k)}">${icon('trash')}</button>
+      </span></div>`; }).join('')}</div>`;
+}
+function renderLog() {
+  const el = $('#view-log');
+  const st = streaks();
+  const editIso = logEdit || todayISO();
+  const l = S.logs[editIso] || {};
+  el.innerHTML = `<div class="vhead"><div><h1>Daily Log</h1><p class="vsub">One honest entry a day — the heatmap does the motivating.</p></div></div>
+  <div class="grid">
+    <div class="card pad c5">
+      <div class="card-h"><span class="card-t">${icon('cal')} ${S.logs[editIso] ? 'Update entry' : 'New entry'}</span></div>
+      <form id="log-form" class="lform">
+        <div class="field"><label>Date</label><input class="input" name="date" type="date" value="${editIso}" max="${todayISO()}"></div>
+        <div class="frow g8">
+          <div class="field"><label>Hours</label><input class="input" name="hours" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="${l.hours ?? ''}"></div>
+          <div class="field"><label>Lectures</label><input class="input" name="lectures" type="number" inputmode="numeric" min="0" value="${l.lectures ?? ''}"></div>
+          <div class="field"><label>Questions</label><input class="input" name="questions" type="number" inputmode="numeric" min="0" value="${l.questions ?? ''}"></div>
+        </div>
+        <div class="field"><label>Note</label><input class="input" name="note" type="text" maxlength="160" placeholder="What did you cover?" value="${esc(l.note || '')}"></div>
+        <div class="frow g8"><button class="btn primary" type="submit">Save entry</button>
+          ${S.logs[editIso] ? `<button class="btn danger ghost" type="button" data-action="log-del" data-date="${editIso}">Delete</button>` : ''}
+          ${logEdit ? `<button class="btn ghost" type="button" data-action="log-cancel">Cancel</button>` : ''}
+        </div>
+      </form></div>
+    <div class="card pad c7">
+      <div class="card-h"><span class="card-t">${icon('trend')} Stats</span></div>
+      <div class="statgrid">
+        ${statCell(st.cur + 'd', 'current streak')}${statCell(st.best + 'd', 'best streak')}${statCell(fmtH(st.totalH), 'total hours')}
+        ${statCell(st.daysLogged ? fmtH(st.totalH / st.daysLogged) : '—', 'avg / logged day')}${statCell(fmtN(st.totalL), 'lectures')}${statCell(fmtN(st.totalQ), 'questions')}
+      </div>${weekBars()}</div>
+    <div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('cal')} Consistency</span>${heatHead()}</div>
+      ${heatmap()}</div>
+    <div class="card c12"><div class="card-h pad-h"><span class="card-t">${icon('book')} History</span><span class="tiny muted">${st.daysLogged} day${st.daysLogged === 1 ? '' : 's'} logged</span></div>${logRows()}</div>
+  </div>`;
+}
+
+/* ---------- Mocks ---------- */
+function mockRows(list) {
+  return `<div class="rows">${list.slice().reverse().map(m => {
+    const s = pct(+m.score || 0, +m.total || 100) * 100;
+    return `<div class="row mock-r"><span class="r-date">${fmtD(m.date)}</span>
+      <span class="badge b-${m.exam}">${(m.exam || 'cse').toUpperCase()}</span>
+      <span class="r-name">${esc(m.name || 'Mock')}</span>
+      <span class="r-kv"><b>${+m.score || 0}</b> / ${+m.total || 100}</span>
+      <span class="r-kv ${s >= 70 ? 'ok-t' : s < 45 ? 'bad-t' : ''}">${s.toFixed(0)}%</span>
+      <span class="r-note muted">${esc(m.note || '')}</span>
+      <span class="r-act"><button class="icon-btn" data-action="mock-del" data-id="${m.id}" aria-label="Delete mock">${icon('trash')}</button></span>
+    </div>`; }).join('')}</div>`;
+}
+function renderMocks() {
+  const el = $('#view-mocks');
+  let list = S.mocks.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  if (mockFilter !== 'all') list = list.filter(m => m.exam === mockFilter);
+  const scores = list.map(m => pct(+m.score || 0, +m.total || 100) * 100);
+  const best = scores.length ? Math.max(...scores) : 0;
+  const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+  const last = scores.length ? scores[scores.length - 1] : 0;
+  el.innerHTML = `<div class="vhead"><div><h1>Mocks</h1><p class="vsub">A mock without analysis is half a mock — log both.</p></div>
+    <div class="vact"><button class="btn primary" data-action="mock-add">${icon('plus')} Add mock</button></div></div>
+  <div class="grid">
+    <div class="card pad c12">
+      <div class="card-h">
+        <div class="seg">${['all', 'cse', 'da'].map(f => `<button class="seg-b${mockFilter === f ? ' active' : ''}" data-action="mock-filter" data-f="${f}">${f === 'all' ? 'All' : f.toUpperCase()}</button>`).join('')}</div>
+        <span class="mock-stats tiny muted">${scores.length ? `best <b>${best.toFixed(0)}%</b> · avg <b>${avg.toFixed(0)}%</b> · last <b>${last.toFixed(0)}%</b> · ${scores.length} test${scores.length === 1 ? '' : 's'}` : ''}</span>
+      </div>
+      ${list.length >= 2 ? mockChart(list)
+        : list.length === 1 ? '<p class="small muted">One mock in — add another and the trend line appears.</p>'
+        : `<div class="empty">${icon('gauge')}<b>No mocks yet.</b><span>Your first score is a baseline, not a verdict. Add it.</span></div>`}
+    </div>
+    ${list.length ? `<div class="card c12">${mockRows(list)}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- Settings ---------- */
+function toggleRow(k, label, hint) {
+  const on = !!S.settings[k];
+  return `<div class="tog-row">
+    <div><b class="small">${label}</b><div class="tiny muted">${hint}</div></div>
+    <button class="seg" data-action="set-toggle" data-k="${k}" aria-pressed="${on}">
+      <span class="seg-b${on ? '' : ' active'}">Off</span><span class="seg-b${on ? ' active' : ''}">On</span>
+    </button></div>`;
+}
+function renderSettings() {
+  const el = $('#view-settings');
+  const s = S.settings;
+  const g = s.gist || { token: '', id: '', last: '' };
+  el.innerHTML = `<div class="vhead"><div><h1>Settings</h1><p class="vsub">Everything the planner math depends on lives here.</p></div></div>
+  <div class="grid">
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('flag')} Exams</span></div>
+      <div class="field" style="margin-bottom:13px"><label>Preparing for</label>
+        <div class="seg">${[['both', 'Both papers'], ['cse', 'CSE only'], ['da', 'DA only']].map(o => `<button class="seg-b${s.mode === o[0] ? ' active' : ''}" data-action="set-mode" data-v="${o[0]}">${o[1]}</button>`).join('')}</div></div>
+      <div class="frow g8">
+        <div class="field"><label>GATE CSE date</label><input class="input" type="date" data-action="set-date" data-k="dateCSE" value="${s.dateCSE}"></div>
+        <div class="field"><label>GATE DA date</label><input class="input" type="date" data-action="set-date" data-k="dateDA" value="${s.dateDA}"></div>
+      </div>
+      <p class="tiny muted mt6">Defaults assume GATE 2027 on the usual first-two-February-weekends pattern (6 / 7 / 13 / 14 Feb 2027). Update once IIT publishes the paper-wise schedule.</p>
+    </div>
+
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('clock')} Study inputs</span><span class="tiny muted">week avg ${fmtH(avgDailyHours())}</span></div>
+      <div class="field" style="margin-bottom:11px"><label>Weekday hours — <b id="hwk-v" style="text-transform:none">${fmtH(s.hoursWk)}</b></label>
+        <input type="range" min="1" max="16" step="0.5" value="${s.hoursWk}" data-action="set-hours" data-k="hoursWk" aria-label="Weekday hours"></div>
+      <div class="field" style="margin-bottom:13px"><label>Weekend hours — <b id="hwe-v" style="text-transform:none">${fmtH(s.hoursWe)}</b></label>
+        <input type="range" min="1" max="16" step="0.5" value="${s.hoursWe}" data-action="set-hours" data-k="hoursWe" aria-label="Weekend hours"></div>
+      <div class="frow g8">
+        <div class="field"><label>Revision buffer (days)</label><input class="input" type="number" min="0" max="120" value="${s.buffer}" data-action="set-num" data-k="buffer"></div>
+        <div class="field"><label>Minutes per lecture</label><input class="input" type="number" min="15" max="240" value="${s.effMin}" data-action="set-num" data-k="effMin"></div>
+      </div>
+      <p class="tiny muted mt6">College days and Sundays are different animals — the planner paces on your weekly average but today's plan uses today's number.</p>
+    </div>
+
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('rotate')} Spaced repetition</span></div>
+      <div class="frow g8">
+        <div class="field"><label>Pass 1 after</label><input class="input" type="number" min="1" max="120" value="${(s.revInts || [7,21,60])[0]}" data-action="set-rev" data-i="0"></div>
+        <div class="field"><label>Pass 2 after</label><input class="input" type="number" min="1" max="180" value="${(s.revInts || [7,21,60])[1]}" data-action="set-rev" data-i="1"></div>
+        <div class="field"><label>Pass 3 after</label><input class="input" type="number" min="1" max="240" value="${(s.revInts || [7,21,60])[2]}" data-action="set-rev" data-i="2"></div>
+        <div class="field"><label>Then every</label><input class="input" type="number" min="7" max="180" value="${s.revRepeat || 45}" data-action="set-num" data-k="revRepeat"></div>
+      </div>
+      <p class="tiny muted mt6">Days after a subject is finished (then after each pass). Due revisions appear on the dashboard and inside today's plan.</p>
+    </div>
+
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('play')} Focus timer</span></div>
+      <div class="frow g8">
+        <div class="field"><label>Focus block (min)</label><input class="input" type="number" min="10" max="180" value="${s.pomoWork || 50}" data-action="set-num" data-k="pomoWork"></div>
+        <div class="field"><label>Break (min)</label><input class="input" type="number" min="3" max="60" value="${s.pomoBreak || 10}" data-action="set-num" data-k="pomoBreak"></div>
+      </div>
+      <p class="tiny muted mt6">Finished blocks log themselves into today's hours — and into the subject you picked.</p>
+    </div>
+
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('sun')} Appearance & alerts</span></div>
+      <div class="field" style="margin-bottom:12px"><label>Theme</label>
+        <div class="seg">${[['light', 'Light'], ['dark', 'Dark'], ['system', 'System']].map(o => `<button class="seg-b${s.theme === o[0] ? ' active' : ''}" data-action="set-theme" data-v="${o[0]}">${o[1]}</button>`).join('')}</div></div>
+      ${toggleRow('accentAuto', 'Phase-tinted accent', 'The interface warms from indigo to rose as the exam closes in')}
+      <div class="tog-row">
+        <div><b class="small">Notifications</b><div class="tiny muted">Mock days, revision due, focus blocks finishing</div></div>
+        <button class="btn sm" data-action="notify-ask">${s.notify ? 'On — re-check' : 'Enable'}</button>
+      </div>
+    </div>
+
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('down')} Data</span></div>
+      <p class="tiny muted" style="margin-bottom:12px">Everything is stored in this browser (${storage.ok ? 'private, offline, free — nothing leaves your device' : 'unavailable here — preview only'}). Moving devices? See the sync card below.</p>
+      <div class="frow g8 wrap">
+        <button class="btn" data-action="export">${icon('down')} Export JSON</button>
+        <button class="btn" data-action="import">${icon('up')} Import JSON</button>
+        <button class="btn" data-action="ics">${icon('cal')} Export .ics</button>
+        <button class="btn" data-action="share-card">${icon('spark')} Progress card</button>
+        <button class="btn danger ghost" data-action="reset">Reset all</button>
+      </div>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('up')} Use Ascent on another device</span></div>
+      <p class="small muted" style="margin-bottom:14px">No account, no password, no setup. Ascent packs everything into a link; you send that link to yourself and open it on the other device. The data travels <i>inside</i> the link — it is never uploaded to any server, not even Anthropic's or GitHub's.</p>
+      <div class="frow g8 wrap">
+        <button class="btn primary" data-action="sync-link">${icon('up')} Create sync link</button>
+        <button class="btn" data-action="sync-paste">${icon('down')} Load from a link</button>
+        <button class="btn ghost" data-action="export">${icon('down')} Backup file</button>
+        <button class="btn ghost" data-action="import">${icon('up')} Restore file</button>
+      </div>
+      <div class="tiny muted mt6"><b>Which do I use?</b> The link is the easy way — good for moving phone ↔ laptop right now. The backup file is the safe way — keep one in Google Drive so a lost phone or a cleared browser can't erase months of work. Both are one tap.</div>
+      <details class="adv">
+        <summary>Advanced: automatic sync via your own GitHub account</summary>
+        <p class="small muted" style="margin:10px 0">Only if you already use GitHub. Create a token at <b>github.com → Settings → Developer settings → Tokens</b> with just the <b>gist</b> scope; Ascent then keeps your data in a secret gist on your account, so you can push from one device and pull on another without passing links around. Skip this entirely if it sounds like work — the link above does the same job.</p>
+        <div class="frow g8 wrap">
+          <div class="field" style="min-width:230px"><label>GitHub token (gist scope)</label>
+            <input class="input" type="password" placeholder="ghp_… stays in this browser" value="${esc(g.token)}" data-action="set-gist" data-k="token"></div>
+          <div class="field" style="min-width:190px"><label>Gist ID (auto after first push)</label>
+            <input class="input" type="text" placeholder="auto" value="${esc(g.id)}" data-action="set-gist" data-k="id"></div>
+        </div>
+        <div class="frow g8 wrap mt6">
+          <button class="btn" data-action="gist-push">${icon('up')} Push</button>
+          <button class="btn" data-action="gist-pull">${icon('down')} Pull</button>
+          ${g.last ? `<span class="tiny muted" style="align-self:center">last sync ${fmtDY(g.last.slice(0, 10))}</span>` : ''}
+        </div>
+      </details>
+    </div>
+
+    <div class="card pad c12 about"><b>Ascent</b> — a single-file, zero-dependency GATE CSE & DA command center, tuned for GO Classes-style lecture prep (unofficial). Lecture counts, weightages and PYQ pools are editable estimates. Rank projections are rough heuristics, not predictions. Press <b>⌘K / Ctrl-K</b> anywhere for the command palette; <b>d s p i l m</b> jump between views.</div>
+  </div>`;
+}
+
+/* ============================================================
+   Modals, toasts, events, theme, data I/O, boot
+   ============================================================ */
+function openModal(html) {
+  const root = $('#modal-root');
+  root.innerHTML = `<div class="modal-back"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  const back = root.firstElementChild;
+  back.addEventListener('mousedown', e => { if (e.target === back) closeModal(); });
+  const f = root.querySelector('input:not([type=hidden]),select');
+  if (f) setTimeout(() => f.focus(), 40);
+}
+function closeModal() { $('#modal-root').innerHTML = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function subjectModal(id) {
+  const s = id ? S.subjects.find(x => x.id === id) : null;
+  openModal(`<div class="m-head"><span class="m-t">${s ? 'Edit subject' : 'Add subject'}</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+  <form id="subject-form" data-id="${s ? s.id : ''}">
+    <div class="field"><label>Name</label><input class="input" name="name" required maxlength="60" value="${s ? esc(s.name) : ''}" placeholder="e.g. Operating Systems"></div>
+    <div class="field"><label>Appears in</label>
+      <div class="seg" id="sf-exam">${[['both', 'Both'], ['cse', 'CSE'], ['da', 'DA']].map(o => `<button type="button" class="seg-b${(s ? s.exam : 'both') === o[0] ? ' active' : ''}" data-exam="${o[0]}">${o[1]}</button>`).join('')}
+      <input type="hidden" name="exam" value="${s ? s.exam : 'both'}"></div></div>
+    <div class="frow g8">
+      <div class="field"><label>Total lectures</label><input class="input" name="total" type="number" min="1" max="999" required value="${s ? s.total : ''}" placeholder="e.g. 60"></div>
+      <div class="field"><label>Done</label><input class="input" name="done" type="number" min="0" value="${s ? s.done : 0}"></div>
+    </div>
+    <div class="frow g8">
+      <div class="field"><label>Marks — CSE</label><input class="input" name="wc" type="number" min="0" max="100" value="${s ? +s.wc || 0 : 0}"></div>
+      <div class="field"><label>Marks — DA</label><input class="input" name="wd" type="number" min="0" max="100" value="${s ? +s.wd || 0 : 0}"></div>
+    </div>
+    <div class="frow g8">
+      <div class="field"><label>PYQ pool (total)</label><input class="input" name="pyqTotal" type="number" min="0" value="${s ? +s.pyqTotal || 0 : 0}"></div>
+      <div class="field"><label>PYQs done</label><input class="input" name="pyqDone" type="number" min="0" value="${s ? +s.pyqDone || 0 : 0}"></div>
+    </div>
+    <div class="m-foot"><button type="button" class="btn ghost" data-action="modal-x">Cancel</button><button class="btn primary" type="submit">${s ? 'Save changes' : 'Add subject'}</button></div>
+  </form>`);
+  $('#sf-exam').addEventListener('click', e => {
+    const b = e.target.closest('[data-exam]'); if (!b) return;
+    $$('#sf-exam .seg-b').forEach(x => x.classList.toggle('active', x === b));
+    $('#sf-exam input[name=exam]').value = b.dataset.exam;
+  });
+}
+function mockModal() {
+  openModal(`<div class="m-head"><span class="m-t">Add mock</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+  <form id="mock-form">
+    <div class="frow g8">
+      <div class="field"><label>Date</label><input class="input" name="date" type="date" required value="${todayISO()}"></div>
+      <div class="field"><label>Paper</label><select class="input select" name="exam" style="width:100%"><option value="cse">GATE CSE</option><option value="da">GATE DA</option></select></div>
+    </div>
+    <div class="field"><label>Test name</label><input class="input" name="name" maxlength="60" placeholder="e.g. GO Classes FLT-3"></div>
+    <div class="frow g8">
+      <div class="field"><label>Score</label><input class="input" name="score" type="number" step="0.01" required placeholder="e.g. 61.33"></div>
+      <div class="field"><label>Out of</label><input class="input" name="total" type="number" value="100" min="1"></div>
+    </div>
+    <div class="frow g8">
+      <div class="field"><label>Questions attempted</label><input class="input" name="attempted" type="number" min="0" max="65" placeholder="e.g. 52"></div>
+      <div class="field"><label>Correct</label><input class="input" name="correct" type="number" min="0" max="65" placeholder="e.g. 41"></div>
+    </div>
+    <div class="field"><label>Weak areas (tap to flag — these get pushed into your daily plan)</label>
+      <div class="chip-pick" id="mk-weak">${activeSubjects().map(s => `<button type="button" class="rev-chip" data-action="weak-pick" data-weak="${s.id}">${esc(s.name)}</button>`).join('')}</div></div>
+    <div class="field"><label>Analysis note</label><input class="input" name="note" maxlength="180" placeholder="Silly mistakes, time sinks, topics to patch…"></div>
+    <div class="m-foot"><button type="button" class="btn ghost" data-action="modal-x">Cancel</button><button class="btn primary" type="submit">Save mock</button></div>
+  </form>`);
+}
+function planModal(pid) {
+  const plan = todaysPlan();
+  const it = pid ? plan.items.find(x => x.id === pid) : null;
+  const isAuto = !!(it && String(it.id).startsWith('a-'));
+  openModal(`<div class="m-head"><span class="m-t">${it ? 'Edit task' : 'Add task'}</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+  <form id="plan-form" data-pid="${it ? esc(it.id) : ''}">
+    <div class="field"><label>Task</label><input class="input" name="text" required maxlength="90" value="${it ? esc(it.text) : ''}" placeholder="e.g. Rewatch OS deadlock lectures"></div>
+    <div class="field"><label>Detail (optional)</label><input class="input" name="meta" maxlength="80" value="${it ? esc(it.meta || '') : ''}" placeholder="e.g. 1.5h · with notes"></div>
+    ${isAuto
+      ? `<p class="tiny muted">This is an auto-generated task — your edit applies to today only, and tomorrow's plan regenerates fresh.</p>`
+      : `<label class="frow g8" style="cursor:pointer"><input type="checkbox" name="repeat" style="width:17px;height:17px;accent-color:var(--acc2)"${it && it.repeat ? ' checked' : ''}><span class="small">Repeat daily — keep this task on every future day's plan</span></label>`}
+    <div class="m-foot"><button type="button" class="btn ghost" data-action="modal-x">Cancel</button><button class="btn primary" type="submit">${it ? 'Save task' : 'Add task'}</button></div>
+  </form>`);
+}
+
+let confirmCb = null;
+function confirmModal(title, body, okLabel, cb, danger) {
+  confirmCb = cb;
+  openModal(`<div class="m-head"><span class="m-t">${title}</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+  <p class="small" style="margin:2px 0 18px">${body}</p>
+  <div class="m-foot"><button class="btn ghost" data-action="modal-x">Cancel</button><button class="btn ${danger ? 'danger' : 'primary'}" data-action="confirm-ok">${okLabel}</button></div>`);
+}
+
+let toastAct = null;
+function toast(msg, action) {
+  const root = $('#toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${msg}</span>${action ? `<button class="toast-b" data-action="toast-act">${action.label}</button>` : ''}`;
+  if (action) toastAct = action.fn;
+  root.appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, 3800);
+}
+
+function markCompletion(s) {
+  const done = (+s.total > 0) && (+s.done || 0) >= (+s.total || 0);
+  if (done && !s.completedAt) s.completedAt = todayISO();
+  if (!done) s.completedAt = null;
+}
+
+function bumpTodayLect(delta) {
+  const t = todayISO();
+  const l = S.logs[t] || (S.logs[t] = { hours: 0, lectures: 0, questions: 0, note: '' });
+  l.lectures = Math.max(0, (+l.lectures || 0) + delta);
+}
+
+function doExport() {
+  const blob = new Blob([JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ascent-backup-${todayISO()}.json`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  toast('Backup downloaded');
+}
+
+/* ---------- global event delegation ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]');
+  if (!b) return;
+  const a = b.dataset.action;
+  const card = b.closest('[data-id]');
+  const id = card ? card.dataset.id : b.dataset.id;
+  switch (a) {
+    case 'nav': go(b.dataset.view); break;
+    case 'theme-cycle': {
+      const cur = document.documentElement.dataset.theme;
+      S.settings.theme = cur === 'dark' ? 'light' : 'dark';
+      applyTheme(); save();
+      if (view === 'settings') renderSettings();
+      break;
+    }
+    case 'dismiss-welcome': S.flags.welcome = false; save(); renderDashboard(); break;
+    case 'plan-check': {
+      const c = planChecksToday();
+      c[b.dataset.pid] = b.checked; save();
+      const li = b.closest('.plan-item'); if (li) li.classList.toggle('done', b.checked);
+      break;
+    }
+    case 'plan-add': planModal(); break;
+    case 'plan-edit': { const row = b.closest('[data-pid]'); if (row) planModal(row.dataset.pid); break; }
+    case 'plan-del': {
+      const row = b.closest('[data-pid]'); if (!row) break;
+      const pid = row.dataset.pid;
+      const store = freezePlan();
+      const i = store.items.findIndex(x => x.id === pid); if (i < 0) break;
+      const rm = store.items.splice(i, 1)[0];
+      const ri = S.planRepeat.findIndex(r => r.id === pid);
+      const rrm = ri >= 0 ? S.planRepeat.splice(ri, 1)[0] : null;
+      save(); renderDashboard();
+      toast(rrm ? 'Repeating task removed' : 'Task removed', { label: 'Undo', fn: () => {
+        const st = freezePlan(); st.items.splice(i, 0, rm);
+        if (rrm) S.planRepeat.splice(ri, 0, rrm);
+        save(); if (view === 'dashboard') renderDashboard();
+      } });
+      break;
+    }
+    case 'plan-reset':
+      delete S.planEdits[todayISO()]; save(); renderDashboard();
+      toast('Back to the auto-plan' + (S.planRepeat.length ? ' (repeating tasks kept)' : ''));
+      break;
+    case 'sub-add': subjectModal(); break;
+    case 'sub-edit': subjectModal(id); break;
+    case 'sub-del': {
+      const i = S.subjects.findIndex(x => x.id === id); if (i < 0) break;
+      const rm = S.subjects.splice(i, 1)[0]; save(); renderSubjects();
+      toast(`Deleted “${esc(rm.name)}”`, { label: 'Undo', fn: () => { S.subjects.splice(i, 0, rm); save(); if (view === 'subjects') renderSubjects(); } });
+      break;
+    }
+    case 'sub-inc': case 'sub-dec': {
+      const s = S.subjects.find(x => x.id === id); if (!s) break;
+      const d = a === 'sub-inc' ? 1 : -1;
+      const nd = clamp((+s.done || 0) + d, 0, +s.total || 0);
+      if (nd !== +s.done) { s.done = nd; markCompletion(s); bumpTodayLect(d); save(); refreshSubjectCard(card, s); }
+      break;
+    }
+    case 'rev-set': {
+      const s = S.subjects.find(x => x.id === id); if (!s) break;
+      const n = +b.dataset.n;
+      const target = (+s.rev || 0) === n ? n - 1 : n;
+      if (!Array.isArray(s.revHist)) s.revHist = [];
+      while (s.revHist.length < target) s.revHist.push(todayISO());
+      while (s.revHist.length > target) s.revHist.pop();
+      s.rev = target;
+      save(); renderSubjectList();
+      break;
+    }
+    case 'rev-done': {
+      const s = S.subjects.find(x => x.id === b.dataset.id); if (!s) break;
+      markRevised(s); save(); renderDashboard();
+      const r = revState(s);
+      toast(`${esc(s.name)} revised — next pass ${r ? fmtD(r.due) : 'scheduled'}`);
+      break;
+    }
+    case 'timer-start': {
+      const sel = $('#timer-sub');
+      startTimer(sel ? sel.value : '', clamp(+($('#timer-min') ? $('#timer-min').value : 50) || 50, 5, 180), 'work');
+      break;
+    }
+    case 'timer-pause': pauseTimer(); break;
+    case 'timer-resume': resumeTimer(); break;
+    case 'timer-stop': stopTimer(); break;
+    case 'ics': icsExport(); break;
+    case 'share-card': shareCard(); break;
+    case 'sync-link': syncLinkModal(); break;
+    case 'sync-paste': syncPasteModal(); break;
+    case 'sync-copy': {
+      const ta = $('#sync-link'); if (!ta) break;
+      ta.select();
+      const done = () => toast('Link copied — send it to your other device');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { try { document.execCommand('copy'); done(); } catch (e) { toast('Select the text and copy manually.'); } });
+      else { try { document.execCommand('copy'); done(); } catch (e) { toast('Select the text and copy manually.'); } }
+      break;
+    }
+    case 'sync-share': {
+      const ta = $('#sync-link'); if (!ta || !navigator.share) break;
+      navigator.share({ title: 'My Ascent study data', url: ta.value }).catch(() => {});
+      break;
+    }
+    case 'sync-load': { const ta = $('#sync-paste'); if (ta) loadFromText(ta.value); break; }
+    case 'gist-push': gistPush(); break;
+    case 'gist-pull': gistPull(); break;
+    case 'notify-ask': askNotify(); break;
+    case 'weak-pick': b.classList.toggle('on'); break;
+    case 'hm-mode': hmMode = b.dataset.v; hmOff = 0; if (view === 'log') renderLog(); else renderDashboard(); break;
+    case 'hm-prev': hmOff--; if (view === 'log') renderLog(); else renderDashboard(); break;
+    case 'hm-next': hmOff = Math.min(0, hmOff + 1); if (view === 'log') renderLog(); else renderDashboard(); break;
+    case 'hm-day': {
+      const dte = b.dataset.date;
+      if (dte > todayISO()) { toast("That day hasn't happened yet."); break; }
+      logEdit = dte; go('log'); window.scrollTo({ top: 0 });
+      break;
+    }
+    case 'palette': openPalette(); break;
+    case 'pal-run': {
+      const c = commands().find(x => x.t === b.dataset.t);
+      closeModal(); if (c) c.f();
+      break;
+    }
+    case 'set-toggle': {
+      const k = b.dataset.k;
+      S.settings[k] = !S.settings[k];
+      if (k === 'accentAuto') applyTheme();
+      save(); renderSettings();
+      break;
+    }
+    case 'sub-filter': subjFilter = b.dataset.f; renderSubjects(); break;
+    case 'mock-add': mockModal(); break;
+    case 'mock-filter': mockFilter = b.dataset.f; renderMocks(); break;
+    case 'mock-del': {
+      const i = S.mocks.findIndex(m => m.id === b.dataset.id); if (i < 0) break;
+      const rm = S.mocks.splice(i, 1)[0]; save(); renderMocks();
+      toast('Mock deleted', { label: 'Undo', fn: () => { S.mocks.splice(i, 0, rm); save(); if (view === 'mocks') renderMocks(); } });
+      break;
+    }
+    case 'log-edit': logEdit = b.dataset.date; renderLog(); window.scrollTo({ top: 0, behavior: 'smooth' }); break;
+    case 'log-cancel': logEdit = null; renderLog(); break;
+    case 'log-del':
+      confirmModal('Delete entry?', `Remove the log for <b>${fmtD(b.dataset.date)}</b>? This can't be undone.`, 'Delete',
+        (date => () => { delete S.logs[date]; logEdit = null; save(); if (view === 'log') renderLog(); else renderDashboard(); })(b.dataset.date), true);
+      break;
+    case 'set-mode': S.settings.mode = b.dataset.v; whatIf = null; save(); renderSettings(); break;
+    case 'set-theme': S.settings.theme = b.dataset.v; applyTheme(); save(); renderSettings(); break;
+    case 'export': doExport(); break;
+    case 'import': { const f = $('#import-file'); if (f) f.click(); break; }
+    case 'reset':
+      confirmModal('Reset everything?', 'All subjects, logs, mocks and settings will be wiped and defaults restored. Export a backup first if unsure.', 'Reset all',
+        () => { S = defaultState(); save(); applyTheme(); go('dashboard'); toast('Fresh start — defaults restored.'); }, true);
+      break;
+    case 'confirm-ok': { const fn = confirmCb; confirmCb = null; closeModal(); if (fn) fn(); break; }
+    case 'modal-x': closeModal(); break;
+    case 'toast-act': { const fn = toastAct; toastAct = null; const t = b.closest('.toast'); if (t) t.remove(); if (fn) fn(); break; }
+  }
+});
+
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'import-file') {
+    const file = el.files && el.files[0]; el.value = '';
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const j = JSON.parse(rd.result);
+        const d = j && j.app === 'ascent-gate' && j.data ? j.data : (j && j.subjects && j.settings ? j : null);
+        if (!d) throw new Error('shape');
+        confirmModal('Import backup?', 'This replaces everything currently in the tracker with the backup contents.', 'Import', () => {
+          const base = defaultState();
+          S = { v: 1,
+            settings: Object.assign(base.settings, d.settings || {}),
+            subjects: Array.isArray(d.subjects) ? d.subjects : base.subjects,
+            logs: d.logs || {}, mocks: Array.isArray(d.mocks) ? d.mocks : [],
+            planChecks: d.planChecks || {}, flags: Object.assign(base.flags, d.flags || {}, { welcome: false }) };
+          save(); applyTheme(); go('dashboard'); toast('Backup imported');
+        });
+      } catch (err) { toast("That file isn't a valid Ascent backup."); }
+    };
+    rd.readAsText(file);
+    return;
+  }
+  const a = el.dataset.action; if (!a) return;
+  const cardEl = el.closest('[data-id]');
+  const id = cardEl ? cardEl.dataset.id : null;
+  if (a === 'sub-set') {
+    const s = S.subjects.find(x => x.id === id); if (!s) return;
+    const v = clamp(Math.round(+el.value || 0), 0, +s.total || 0);
+    const delta = v - (+s.done || 0);
+    s.done = v; markCompletion(s);
+    if (delta) bumpTodayLect(delta);
+    save(); refreshSubjectCard(cardEl, s);
+  } else if (a === 'pyq-set') {
+    const s = S.subjects.find(x => x.id === id); if (!s) return;
+    s.pyqDone = Math.max(0, Math.round(+el.value || 0));
+    el.value = s.pyqDone; save();
+    const ss = $('#subj-substats'); if (ss) ss.textContent = subjSubText();
+  } else if (a === 'sub-sort') { subjSort = el.value; renderSubjectList(); }
+  else if (a === 'set-date') { if (el.value) { S.settings[el.dataset.k] = el.value; whatIf = null; save(); } else el.value = S.settings[el.dataset.k]; }
+  else if (a === 'set-rev') {
+    const i = +el.dataset.i;
+    const arr = revIntervals().slice();
+    arr[i] = clamp(Math.round(+el.value || 1), 1, 240);
+    S.settings.revInts = arr; el.value = arr[i]; save();
+  }
+  else if (a === 'set-gist') {
+    S.settings.gist = S.settings.gist || { token: '', id: '', last: '' };
+    S.settings.gist[el.dataset.k] = String(el.value || '').trim();
+    save();
+  }
+  else if (a === 'set-num') {
+    const k = el.dataset.k; let v = +el.value;
+    if (k === 'buffer') v = clamp(Math.round(v || 0), 0, 120);
+    if (k === 'effMin') v = clamp(Math.round(v || 55), 15, 240);
+    S.settings[k] = v; el.value = v; whatIf = null; save();
+  }
+});
+
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.action === 'set-hours') {
+    const k = el.dataset.k || 'hoursWk';
+    S.settings[k] = +el.value;
+    S.settings.dailyHours = avgDailyHours();
+    const v = $(k === 'hoursWe' ? '#hwe-v' : '#hwk-v'); if (v) v.textContent = fmtH(+el.value);
+    whatIf = null; save();
+  }
+});
+
+document.addEventListener('submit', e => {
+  const f = e.target; e.preventDefault();
+  if (f.id === 'quick-log' || f.id === 'log-form') {
+    const fd = new FormData(f);
+    const date = f.id === 'quick-log' ? todayISO() : (String(fd.get('date') || '') || todayISO());
+    const entry = {
+      hours: clamp(+fd.get('hours') || 0, 0, 24),
+      lectures: Math.max(0, Math.round(+fd.get('lectures') || 0)),
+      questions: Math.max(0, Math.round(+fd.get('questions') || 0)),
+      note: String(fd.get('note') || '').slice(0, 160),
+    };
+    if (!entry.hours && !entry.lectures && !entry.questions && !entry.note) { toast('Nothing to save — add hours, lectures or questions.'); return; }
+    S.logs[date] = entry; logEdit = null; save();
+    toast(`Saved ${fmtD(date)}`);
+    if (view === 'dashboard') renderDashboard(); else if (view === 'log') renderLog();
+  }
+  else if (f.id === 'subject-form') {
+    const fd = new FormData(f);
+    const name = String(fd.get('name') || '').trim();
+    if (!name) { toast('Give the subject a name.'); return; }
+    const total = clamp(Math.round(+fd.get('total') || 0), 1, 999);
+    const obj = {
+      name, exam: String(fd.get('exam') || 'both'), total,
+      done: clamp(Math.round(+fd.get('done') || 0), 0, total),
+      wc: clamp(Math.round(+fd.get('wc') || 0), 0, 100),
+      wd: clamp(Math.round(+fd.get('wd') || 0), 0, 100),
+      pyqTotal: Math.max(0, Math.round(+fd.get('pyqTotal') || 0)),
+      pyqDone: Math.max(0, Math.round(+fd.get('pyqDone') || 0)),
+    };
+    const sid = f.dataset.id;
+    if (sid) { const s = S.subjects.find(x => x.id === sid); if (s) Object.assign(s, obj); }
+    else S.subjects.push(Object.assign({ id: uid(), rev: 0, color: PALETTE[S.subjects.length % PALETTE.length] }, obj));
+    save(); closeModal(); renderSubjects();
+    toast(sid ? 'Subject updated' : `Added “${esc(name)}”`);
+  }
+  else if (f.id === 'plan-form') {
+    const fd = new FormData(f);
+    const text = String(fd.get('text') || '').trim();
+    if (!text) { toast('Give the task a name.'); return; }
+    const meta = String(fd.get('meta') || '').trim().slice(0, 80);
+    const rep = fd.get('repeat') != null;
+    const pid = f.dataset.pid;
+    const store = freezePlan();
+    if (pid) {
+      const it = store.items.find(x => x.id === pid);
+      if (it) { it.text = text; it.meta = meta; }
+      const ri = S.planRepeat.findIndex(r => r.id === pid);
+      if (rep) {
+        if (ri >= 0) Object.assign(S.planRepeat[ri], { text, meta });
+        else { S.planRepeat.push({ id: pid, ic: (it && it.ic) || 'check', text, meta }); }
+        if (it) it.repeat = true;
+      } else if (ri >= 0) { S.planRepeat.splice(ri, 1); if (it) it.repeat = false; }
+    } else {
+      const item = { id: (rep ? 'rep-' : 'c-') + uid(), ic: 'check', text, meta, repeat: rep };
+      store.items.push(item);
+      if (rep) S.planRepeat.push({ id: item.id, ic: 'check', text, meta });
+    }
+    save(); closeModal(); renderDashboard();
+    toast(pid ? 'Task updated' : 'Task added');
+  }
+  else if (f.id === 'mock-form') {
+    const fd = new FormData(f);
+    const weak = $$('#mk-weak .rev-chip.on').map(x => x.dataset.weak);
+    const att = Math.max(0, Math.round(+fd.get('attempted') || 0));
+    S.mocks.push({
+      id: uid(), date: String(fd.get('date') || todayISO()),
+      exam: String(fd.get('exam') || 'cse'),
+      name: String(fd.get('name') || '').trim() || 'Mock',
+      score: +fd.get('score') || 0,
+      total: Math.max(1, +fd.get('total') || 100),
+      attempted: att,
+      correct: clamp(Math.round(+fd.get('correct') || 0), 0, att || 65),
+      weak,
+      note: String(fd.get('note') || '').slice(0, 180),
+    });
+    save(); closeModal(); renderMocks();
+    toast('Mock logged — now do the analysis.');
+  }
+});
+
+/* ---------- theme ---------- */
+const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function applyTheme() {
+  const t = S.settings.theme;
+  const resolved = t === 'system' ? (mq && mq.matches ? 'dark' : 'light') : t;
+  document.documentElement.dataset.theme = resolved;
+  applyAccent();
+  const m = $('#meta-theme'); if (m) m.content = resolved === 'dark' ? '#0B0E17' : '#F3F5FB';
+  $$('.theme-btn').forEach(b => { b.innerHTML = icon(resolved === 'dark' ? 'sun' : 'moon'); });
+}
+if (mq && mq.addEventListener) mq.addEventListener('change', () => { if (S.settings.theme === 'system') applyTheme(); });
+
+/* Accent warms as the exam approaches: Foundation indigo → Final Sprint rose. */
+function applyAccent() {
+  const root = document.documentElement.style;
+  const ex = upcomingExams();
+  if (!S.settings.accentAuto || !ex.length) { root.removeProperty('--acc'); root.removeProperty('--acc2'); return; }
+  const ph = phaseFor(ex[0].days);
+  const pair = { 'Foundation': ['#7C93FF', '#5EC8F2'], 'Core Learning': ['#5EC8F2', '#34D3B1'],
+                 'Consolidation': ['#34D3B1', '#8FD16E'], 'Intensive Practice': ['#FFC554', '#F0916B'],
+                 'Final Sprint': ['#FF8FB1', '#FFC554'] }[ph.name] || ['#7C93FF', '#5EC8F2'];
+  root.setProperty('--acc', pair[0]);
+  root.setProperty('--acc2', pair[1]);
+}
+
+/* ---------- boot ---------- */
+let lastDay = todayISO();
+setInterval(() => { const t = todayISO(); if (t !== lastDay) { lastDay = t; renderAll(); } }, 60000);
+setInterval(tick, 30000);
+
+function init() {
+  applyTheme();
+  renderAll();
+  if (S.timer && !S.timer.paused && timerRemain() > 0) runTimer();
+  else if (S.timer && !S.timer.paused) { S.timer = null; save(); }
+  setTimeout(dailyNudge, 1500);
+  checkSyncHash();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
+/* ============================================================
+   Intelligence engines — revision, debt, readiness, ROI, rank
+   ============================================================ */
+
+/* ---------- spaced repetition ---------- */
+function revIntervals() { const a = S.settings.revInts; return Array.isArray(a) && a.length ? a : [7, 21, 60]; }
+function revState(s) {
+  if (!(+s.total > 0) || (+s.done || 0) < (+s.total || 0)) return null;   // only completed subjects
+  const hist = Array.isArray(s.revHist) ? s.revHist.slice().sort() : [];
+  const anchor = hist.length ? hist[hist.length - 1] : (s.completedAt || todayISO());
+  const ints = revIntervals();
+  const gap = hist.length < ints.length ? ints[hist.length] : (+S.settings.revRepeat || 45);
+  const due = addDays(anchor, gap);
+  return { pass: hist.length + 1, due, dueIn: daysUntil(due), last: hist.length ? hist[hist.length - 1] : null, anchor, gap };
+}
+function revDue() {
+  return activeSubjects().map(s => ({ s, r: revState(s) }))
+    .filter(x => x.r && x.r.dueIn <= 0)
+    .sort((a, b) => a.r.dueIn - b.r.dueIn);
+}
+function revUpcoming() {
+  return activeSubjects().map(s => ({ s, r: revState(s) }))
+    .filter(x => x.r).sort((a, b) => a.r.dueIn - b.r.dueIn);
+}
+function markRevised(s) {
+  if (!Array.isArray(s.revHist)) s.revHist = [];
+  s.revHist.push(todayISO());
+  s.rev = s.revHist.length;
+}
+
+/* ---------- study debt ---------- */
+function trackStart() {
+  const ks = Object.keys(S.logs).filter(hasLog).sort();
+  return ks.length ? ks[0] : todayISO();
+}
+function debtState() {
+  const start = trackStart(), t = todayISO();
+  if (start === t) return { days: 0, expected: 0, logged: 0, debt: 0, perDay: 0, ready: false };
+  let expected = 0, logged = 0, days = 0;
+  for (let d = parseISO(start); isoOf(d) < t; d = new Date(d.getTime() + DAY)) {
+    const iso = isoOf(d);
+    expected += hoursFor(d);
+    logged += (S.logs[iso] && +S.logs[iso].hours) || 0;
+    days++;
+  }
+  const debt = expected - logged;                 // + = behind, − = ahead
+  const window = 14;
+  return { days, expected, logged, debt, perDay: debt / window, window, ready: days >= 3,
+           adherence: expected > 0 ? logged / expected : 1 };
+}
+
+/* ---------- readiness score ---------- */
+function weightedPyq(k) {
+  let W = 0, acc = 0;
+  for (const s of subjectsForExam(k)) {
+    const w = k === 'cse' ? +s.wc || 0 : +s.wd || 0;
+    if (w <= 0 || !(+s.pyqTotal > 0)) continue;
+    W += w; acc += w * pct(+s.pyqDone || 0, +s.pyqTotal);
+  }
+  return W > 0 ? acc / W : 0;
+}
+function mockForm(k) {
+  const list = S.mocks.filter(m => !k || m.exam === k).sort((a, b) => a.date < b.date ? -1 : 1).slice(-3);
+  if (!list.length) return null;
+  return list.reduce((a, m) => a + pct(+m.score || 0, +m.total || 100), 0) / list.length;
+}
+function revisionHealth() {
+  const done = activeSubjects().filter(s => +s.total > 0 && (+s.done || 0) >= (+s.total || 0));
+  if (!done.length) return 0;
+  let acc = 0;
+  for (const s of done) {
+    const r = revState(s);
+    const passes = Math.min(3, (Array.isArray(s.revHist) ? s.revHist.length : +s.rev || 0)) / 3;
+    const overdue = r && r.dueIn < 0 ? clamp(1 + r.dueIn / 30, 0, 1) : 1;   // decay when overdue
+    acc += passes * .6 + overdue * .4 * (passes > 0 ? 1 : 0);
+  }
+  return clamp(acc / done.length, 0, 1);
+}
+function consistency() {
+  const p = recentPace(14);
+  const target = avgDailyHours();
+  return target > 0 ? clamp(p.hrsPerDay / target, 0, 1) : 0;
+}
+function readiness() {
+  const ks = activeExamKeys();
+  const cov = ks.reduce((a, k) => a + weightedProgress(k), 0) / ks.length;
+  const pyq = ks.reduce((a, k) => a + weightedPyq(k), 0) / ks.length;
+  const mf = ks.map(k => mockForm(k)).filter(x => x != null);
+  const mock = mf.length ? mf.reduce((a, b) => a + b, 0) / mf.length : null;
+  const rev = revisionHealth();
+  const con = consistency();
+  const parts = [
+    { key: 'cov',  label: 'Syllabus coverage', w: .35, v: cov,  hint: 'weighted lectures done' },
+    { key: 'pyq',  label: 'PYQ depth',         w: .25, v: pyq,  hint: 'weighted past-paper questions solved' },
+    { key: 'mock', label: 'Mock performance',  w: .20, v: mock == null ? 0 : mock, hint: mock == null ? 'no mocks logged yet' : 'average of last 3 mocks' },
+    { key: 'rev',  label: 'Revision health',   w: .10, v: rev,  hint: 'passes done & how overdue they are' },
+    { key: 'con',  label: 'Consistency',       w: .10, v: con,  hint: 'last 14 days vs your target hours' },
+  ];
+  const score = parts.reduce((a, p) => a + p.w * p.v, 0) * 100;
+  const gap = parts.slice().sort((a, b) => (b.w * (1 - b.v)) - (a.w * (1 - a.v)))[0];
+  return { score, parts, gap, hasMocks: mock != null };
+}
+
+/* ---------- ROI: marks per remaining hour ---------- */
+function subjectMarks(s) {
+  const m = S.settings.mode;
+  if (m === 'cse') return +s.wc || 0;
+  if (m === 'da')  return +s.wd || 0;
+  return (+s.wc || 0) + (+s.wd || 0);
+}
+function roiList() {
+  const eff = +S.settings.effMin || 55;
+  return activeSubjects().map(s => {
+    const lecH = Math.max(0, (+s.total || 0) - (+s.done || 0)) * eff / 60;
+    const pyqLeft = Math.max(0, (+s.pyqTotal || 0) - (+s.pyqDone || 0));
+    const pyqH = pyqLeft * 4 / 60;                    // ~4 min per PYQ incl. analysis
+    const remH = lecH + pyqH;
+    const marks = subjectMarks(s);
+    const banked = marks * pct(s.done, s.total);
+    const left = marks - banked;
+    return { s, marks, banked, left, lecH, pyqH, remH, roi: remH > 0 ? left / remH : Infinity, done: remH <= 0 };
+  }).sort((a, b) => (b.roi === Infinity ? -1 : a.roi === Infinity ? 1 : b.roi - a.roi));
+}
+
+/* ---------- score → GATE score & rank (rough heuristic) ---------- */
+const RANK_TABLE = [[90,20],[85,50],[80,110],[75,220],[70,420],[65,700],[60,1200],[55,2000],[50,3300],[45,5200],[40,8200],[35,13000],[30,20000],[25,32000],[20,50000]];
+function rankFor(marks, exam) {
+  const t = RANK_TABLE;
+  let r;
+  if (marks >= t[0][0]) r = t[0][1];
+  else if (marks <= t[t.length - 1][0]) r = t[t.length - 1][1];
+  else {
+    for (let i = 0; i < t.length - 1; i++) {
+      if (marks <= t[i][0] && marks >= t[i + 1][0]) {
+        const f = (marks - t[i + 1][0]) / (t[i][0] - t[i + 1][0]);
+        r = Math.round(t[i + 1][1] + f * (t[i][1] - t[i + 1][1]));
+        break;
+      }
+    }
+  }
+  if (exam === 'da') r = Math.max(3, Math.round(r * .18));   // much smaller candidate pool
+  return r;
+}
+function gateScore(marks) {
+  const Mq = 28, Mt = 85;
+  return clamp(Math.round(350 + 650 * (marks - Mq) / (Mt - Mq)), 0, 1000);
+}
+function projection3(k) {
+  const list = S.mocks.filter(m => m.exam === k).sort((a, b) => a.date < b.date ? -1 : 1);
+  if (!list.length) return null;
+  const last3 = list.slice(-3).map(m => pct(+m.score || 0, +m.total || 100) * 100);
+  const marks = last3.reduce((a, b) => a + b, 0) / last3.length;
+  const trend = list.length >= 2
+    ? (pct(list[list.length - 1].score, list[list.length - 1].total) - pct(list[0].score, list[0].total)) * 100 : 0;
+  return { marks, trend, n: list.length, rank: rankFor(marks, k), gs: gateScore(marks),
+           lo: rankFor(Math.min(100, marks + 8), k), hi: rankFor(Math.max(0, marks - 8), k) };
+}
+function accuracyStats(k) {
+  const list = S.mocks.filter(m => (!k || m.exam === k) && (+m.attempted || 0) > 0);
+  if (!list.length) return null;
+  let att = 0, cor = 0;
+  list.forEach(m => { att += +m.attempted || 0; cor += +m.correct || 0; });
+  const acc = att > 0 ? cor / att : 0;
+  const wrong = att - cor;
+  return { att, cor, wrong, acc, n: list.length, negLoss: wrong * (1 / 3) };
+}
+function weakSubjects() {
+  const cnt = {};
+  S.mocks.slice(-6).forEach(m => (m.weak || []).forEach(id => { cnt[id] = (cnt[id] || 0) + 1; }));
+  return Object.keys(cnt).map(id => ({ s: S.subjects.find(x => x.id === id), n: cnt[id] }))
+    .filter(x => x.s && subjectVisible(x.s)).sort((a, b) => b.n - a.n);
+}
+
+/* ---------- two-paper overlap optimizer ---------- */
+function overlap() {
+  if (S.settings.mode !== 'both') return null;
+  const ex = upcomingExams();
+  if (ex.length < 2) return null;
+  const p = pacing(); if (!p) return null;
+  const eff = p.eff;
+  const rem = arr => arr.reduce((a, s) => a + Math.max(0, (+s.total || 0) - (+s.done || 0)), 0) * eff / 60;
+  const shared = rem(S.subjects.filter(s => s.exam === 'both'));
+  const cseOnly = rem(S.subjects.filter(s => s.exam === 'cse'));
+  const daOnly = rem(S.subjects.filter(s => s.exam === 'da'));
+  const dC = p.dEff.cse, dD = p.dEff.da;
+  const cseAlone = (shared + cseOnly) / dC;
+  const daAlone = (shared + daOnly) / dD;
+  const both = p.needH;
+  const lec = p.phase.split.lec;
+  const totalBoth = lec > 0 ? both / lec : both;
+  const totalCse = lec > 0 ? cseAlone / lec : cseAlone;
+  const totalDa = lec > 0 ? daAlone / lec : daAlone;
+  const totalRem = shared + cseOnly + daOnly;
+  return { shared, cseOnly, daOnly, cseAlone, daAlone, both, totalBoth, totalCse, totalDa,
+           costOfDA: totalBoth - totalCse, costOfCSE: totalBoth - totalDa,
+           sharePct: totalRem > 0 ? shared / totalRem : 0, totalRem };
+}
+
+/* ---------- burn-down series ---------- */
+function burndown() {
+  const p = pacing(); if (!p) return null;
+  const t = todayISO();
+  const start = trackStart();
+  const target = addDays(p.nearest.date, -p.buf);
+  const curRem = p.remLect;
+  const pts = [];
+  let acc = 0;
+  const days = [];
+  for (let d = parseISO(start); isoOf(d) <= t; d = new Date(d.getTime() + DAY)) days.push(isoOf(d));
+  for (let i = days.length - 1; i >= 0; i--) {
+    const iso = days[i];
+    pts.unshift({ iso, rem: curRem + acc });
+    acc += (S.logs[iso] && +S.logs[iso].lectures) || 0;
+  }
+  const startRem = pts.length ? pts[0].rem : curRem;
+  const pace = recentPace(14);
+  const proj = pace.lectPerDay > 0 ? Math.ceil(curRem / pace.lectPerDay) : null;
+  const projEnd = proj != null ? addDays(t, proj) : null;
+  return { pts, start, today: t, target, startRem, curRem, projEnd, proj, examDate: p.nearest.date, exam: p.nearest.short };
+}
+
+/* ============================================================
+   Focus timer (auto-logging Pomodoro)
+   ============================================================ */
+let timerT = null;
+function timerState() { return S.timer; }
+function timerRemain() {
+  const t = S.timer; if (!t) return 0;
+  if (t.paused) return t.left;
+  return Math.max(0, Math.round((t.endsAt - Date.now()) / 1000));
+}
+function startTimer(sid, mins, mode) {
+  S.timer = { sid: sid || '', mins, mode: mode || 'work', endsAt: Date.now() + mins * 60000, paused: false, left: mins * 60 };
+  save(); runTimer(); renderTimer();
+}
+function pauseTimer() {
+  const t = S.timer; if (!t || t.paused) return;
+  t.left = timerRemain(); t.paused = true; save(); renderTimer();
+}
+function resumeTimer() {
+  const t = S.timer; if (!t || !t.paused) return;
+  t.endsAt = Date.now() + t.left * 1000; t.paused = false; save(); runTimer(); renderTimer();
+}
+function stopTimer(silent) {
+  const t = S.timer;
+  if (t && t.mode === 'work') {
+    const done = t.mins * 60 - timerRemain();
+    if (done >= 300) { logFocus(t.sid, Math.round(done / 60)); if (!silent) toast(`Logged ${Math.round(done / 60)} min of focus`); }
+  }
+  S.timer = null; clearInterval(timerT); save(); renderTimer();
+  if (view === 'dashboard') renderDashboard();
+}
+function logFocus(sid, mins) {
+  const t = todayISO();
+  const l = S.logs[t] || (S.logs[t] = { hours: 0, lectures: 0, questions: 0, note: '' });
+  l.hours = Math.round(((+l.hours || 0) + mins / 60) * 100) / 100;
+  if (sid) { l.bySub = l.bySub || {}; l.bySub[sid] = (+l.bySub[sid] || 0) + mins; }
+  save();
+}
+function runTimer() {
+  clearInterval(timerT);
+  timerT = setInterval(() => {
+    const t = S.timer;
+    if (!t || t.paused) return;
+    if (timerRemain() <= 0) {
+      const wasWork = t.mode === 'work';
+      if (wasWork) logFocus(t.sid, t.mins);
+      const sub = t.sid ? S.subjects.find(x => x.id === t.sid) : null;
+      notify(wasWork ? 'Focus block done' : 'Break over',
+             wasWork ? `${t.mins} min logged${sub ? ' · ' + sub.name : ''}. Take a ${S.settings.pomoBreak || 10} min break.` : 'Back to it.');
+      S.timer = null; clearInterval(timerT); save();
+      toast(wasWork ? `${t.mins} min logged — break time.` : 'Break over — back in.');
+      if (view === 'dashboard') renderDashboard(); else renderTimer();
+      return;
+    }
+    renderTimer();
+  }, 1000);
+}
+function fmtMS(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
+function renderTimer() {
+  const el = $('#timer-face'); if (!el) return;
+  const t = S.timer;
+  el.textContent = t ? fmtMS(timerRemain()) : fmtMS((+S.settings.pomoWork || 50) * 60);
+  const ring = $('#timer-ring');
+  if (ring && t) {
+    const total = t.mins * 60, left = timerRemain();
+    const c = 2 * Math.PI * 52;
+    ring.style.strokeDasharray = c.toFixed(1);
+    ring.style.strokeDashoffset = (c * (1 - left / total)).toFixed(1);
+  } else if (ring) { ring.style.strokeDashoffset = '0'; }
+  const b = $('#timer-btns');
+  if (b) {
+    b.innerHTML = !t
+      ? `<button class="btn primary" data-action="timer-start">${icon('play')} Start focus block</button>`
+      : `${t.paused ? `<button class="btn primary" data-action="timer-resume">${icon('play')} Resume</button>`
+                    : `<button class="btn" data-action="timer-pause">${icon('minus')} Pause</button>`}
+         <button class="btn danger ghost" data-action="timer-stop">Stop &amp; log</button>`;
+  }
+}
+
+/* ============================================================
+   Notifications
+   ============================================================ */
+function notify(title, body) {
+  if (!S.settings.notify || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  try { new Notification(title, { body, icon: undefined, tag: 'ascent' }); } catch (e) {}
+}
+function askNotify() {
+  if (typeof Notification === 'undefined') { toast('This browser has no notification support.'); return; }
+  Notification.requestPermission().then(p => {
+    S.settings.notify = p === 'granted'; save();
+    toast(p === 'granted' ? 'Notifications on — mock days and revisions will nudge you.' : 'Notifications blocked in browser settings.');
+    if (view === 'settings') renderSettings();
+  });
+}
+function dailyNudge() {
+  if (!S.settings.notify) return;
+  const t = todayISO();
+  if (S.flags.notified === t) return;
+  const p = pacing(); if (!p) return;
+  const due = revDue();
+  const isMockDay = (MOCK_DAYS[p.phase.mocksWk] || []).includes(new Date().getDay());
+  const bits = [];
+  if (isMockDay) bits.push(`Mock day — ${p.phase.mockType}`);
+  if (due.length) bits.push(`${due.length} subject${due.length > 1 ? 's' : ''} due for revision`);
+  if (!hasLog(t)) bits.push(`${fmtH(hoursToday())} on the plan today`);
+  if (!bits.length) return;
+  S.flags.notified = t; save();
+  notify(`${p.nearest.days} days to ${p.nearest.label}`, bits.join(' · '));
+}
+
+/* ============================================================
+   Calendar (.ics) export
+   ============================================================ */
+function icsExport() {
+  const p = pacing();
+  if (!p) { toast('Set an exam date first.'); return; }
+  const stamp = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+  const dt = iso => iso.replace(/-/g, '');
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Ascent//GATE Tracker//EN', 'CALSCALE:GREGORIAN'];
+  const ev = (uidx, start, end, sum, desc) => {
+    L.push('BEGIN:VEVENT', `UID:${uidx}@ascent`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${dt(start)}`, `DTEND;VALUE=DATE:${dt(addDays(end, 1))}`,
+      `SUMMARY:${sum.replace(/[,;]/g, ' ')}`, `DESCRIPTION:${(desc || '').replace(/[,;]/g, ' ')}`, 'END:VEVENT');
+  };
+  activeExams().forEach(e => ev('exam-' + e.key, e.date, e.date, `${e.label} — exam day`, 'Ascent'));
+  const t = todayISO();
+  for (let i = 0; i < 60; i++) {
+    const iso = addDays(t, i);
+    const d = parseISO(iso);
+    const days = daysUntil(p.nearest.date);
+    if (days - i < 0) break;
+    const ph = phaseFor(days - i);
+    const H = hoursFor(d);
+    const sp = ph.split;
+    const isMock = (MOCK_DAYS[ph.mocksWk] || []).includes(d.getDay());
+    if (isMock) ev('mock-' + iso, iso, iso, `Mock: ${ph.mockType} (${p.nearest.short})`, `Full analysis same day · ${ph.name} phase`);
+    ev('study-' + iso, iso, iso, `Study ${fmtH(H)} — ${ph.name}`,
+       `Lectures ${fmtH(H * sp.lec)} · Practice ${fmtH(H * sp.prac)} · Revision ${fmtH(H * sp.rev)} · Mocks ${fmtH(H * sp.mock)}`);
+  }
+  revUpcoming().filter(x => x.r.dueIn >= 0 && x.r.dueIn <= 90).forEach(x =>
+    ev('rev-' + x.s.id + x.r.due, x.r.due, x.r.due, `Revision ${x.r.pass}: ${x.s.name}`, 'Spaced repetition — Ascent'));
+  L.push('END:VCALENDAR');
+  const blob = new Blob([L.join('\r\n')], { type: 'text/calendar' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `ascent-schedule-${t}.ics`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  toast('Calendar exported — import it into Google Calendar');
+}
+
+/* ============================================================
+   Shareable progress card (PNG)
+   ============================================================ */
+function shareCard() {
+  const p = pacing();
+  const rd = readiness();
+  const st = streaks();
+  const W = 1200, H = 675;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  if (!c) { toast('Canvas unavailable in this browser.'); return; }
+  const g = c.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#0B0E17'); g.addColorStop(1, '#171D33');
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  const rg = c.createRadialGradient(240, 60, 20, 240, 60, 620);
+  rg.addColorStop(0, 'rgba(124,147,255,.35)'); rg.addColorStop(1, 'rgba(124,147,255,0)');
+  c.fillStyle = rg; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#8C96B2'; c.font = '600 24px Inter, sans-serif';
+  c.fillText('ASCENT · GATE PREP', 64, 84);
+  c.fillStyle = '#E9EDF8'; c.font = '700 92px "Space Grotesk", Inter, sans-serif';
+  c.fillText(p ? `${p.nearest.days} days to ${p.nearest.short}` : 'GATE prep', 64, 190);
+  const cells = [
+    ['Readiness', Math.round(rd.score) + '/100'],
+    ['Syllabus', Math.round(rd.parts[0].v * 100) + '%'],
+    ['Streak', st.cur + ' days'],
+    ['Hours in', fmtH(st.totalH)],
+  ];
+  cells.forEach((cell, i) => {
+    const x = 64 + i * 275, y = 300;
+    c.fillStyle = 'rgba(255,255,255,.045)'; c.strokeStyle = 'rgba(255,255,255,.12)';
+    c.lineWidth = 2;
+    c.beginPath(); c.roundRect(x, y, 250, 170, 20); c.fill(); c.stroke();
+    c.fillStyle = '#8C96B2'; c.font = '600 20px Inter, sans-serif'; c.fillText(cell[0], x + 24, y + 48);
+    c.fillStyle = '#E9EDF8'; c.font = '700 46px "Space Grotesk", Inter, sans-serif'; c.fillText(cell[1], x + 24, y + 116);
+  });
+  c.fillStyle = '#34D3B1'; c.font = '600 26px Inter, sans-serif';
+  c.fillText(p && p.remLect ? `${fmtN(p.remLect)} lectures to go · ${fmtH(p.totalNeeded)}/day to stay on plan` : 'Syllabus complete — practice mode', 64, 560);
+  c.fillStyle = '#5E6883'; c.font = '400 22px Inter, sans-serif';
+  c.fillText(fmtDY(todayISO()), 64, 610);
+  cv.toBlob(b => {
+    if (!b) { toast('Could not render the card.'); return; }
+    const file = new File([b], 'ascent-progress.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'My GATE progress' }).catch(() => {});
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = 'ascent-progress.png';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+    toast('Progress card saved');
+  }, 'image/png');
+}
+
+/* ============================================================
+   Cross-device sync via a private GitHub Gist (free, no backend)
+   ============================================================ */
+const GH = 'https://api.github.com';
+function ghHead() {
+  return { Authorization: 'Bearer ' + S.settings.gist.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' };
+}
+async function gistPush() {
+  const g = S.settings.gist;
+  if (!g.token) { toast('Add a GitHub token in Settings first.'); return; }
+  const body = { description: 'Ascent GATE tracker backup', public: false,
+                 files: { 'ascent.json': { content: JSON.stringify({ app: 'ascent-gate', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 1) } } };
+  try {
+    const r = await fetch(g.id ? `${GH}/gists/${g.id}` : `${GH}/gists`,
+      { method: g.id ? 'PATCH' : 'POST', headers: ghHead(), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    S.settings.gist.id = j.id;
+    S.settings.gist.last = new Date().toISOString();
+    save();
+    toast('Synced up to your private gist');
+    if (view === 'settings') renderSettings();
+  } catch (e) { toast('Sync failed — check the token (needs "gist" scope) and try again.'); }
+}
+async function gistPull() {
+  const g = S.settings.gist;
+  if (!g.token || !g.id) { toast('Push once first, or paste an existing gist ID.'); return; }
+  try {
+    const r = await fetch(`${GH}/gists/${g.id}`, { headers: ghHead() });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    const f = j.files && j.files['ascent.json'];
+    if (!f) throw new Error('no file');
+    const parsed = JSON.parse(f.content);
+    const d = parsed && parsed.data ? parsed.data : parsed;
+    confirmModal('Pull from gist?', 'This replaces everything on this device with the synced copy.', 'Pull & replace', () => {
+      const base = defaultState();
+      const keepGist = S.settings.gist;
+      S = { v: 1,
+        settings: Object.assign(base.settings, d.settings || {}, { gist: keepGist }),
+        subjects: Array.isArray(d.subjects) ? d.subjects : base.subjects,
+        logs: d.logs || {}, mocks: Array.isArray(d.mocks) ? d.mocks : [],
+        planChecks: d.planChecks || {}, planEdits: d.planEdits || {}, planRepeat: d.planRepeat || [],
+        timer: null, flags: Object.assign(base.flags, d.flags || {}, { welcome: false }) };
+      save(); applyTheme(); go('dashboard'); toast('Pulled from gist — this device is up to date.');
+    });
+  } catch (e) { toast('Pull failed — check the token and gist ID.'); }
+}
+
+/* ============================================================
+   Command palette (Cmd/Ctrl + K)
+   ============================================================ */
+function commands() {
+  return [
+    { t: 'Go to Dashboard', k: 'dashboard nav home', f: () => go('dashboard') },
+    { t: 'Go to Subjects', k: 'subjects nav', f: () => go('subjects') },
+    { t: 'Go to Planner', k: 'planner nav pace phase', f: () => go('planner') },
+    { t: 'Go to Insights', k: 'insights nav roi readiness burndown rank', f: () => go('insights') },
+    { t: 'Go to Daily Log', k: 'log nav hours', f: () => go('log') },
+    { t: 'Go to Mocks', k: 'mocks nav tests', f: () => go('mocks') },
+    { t: 'Go to Settings', k: 'settings nav', f: () => go('settings') },
+    { t: 'Start a focus block', k: 'timer pomodoro focus start', f: () => { go('dashboard'); setTimeout(() => startTimer($('#timer-sub') ? $('#timer-sub').value : '', +S.settings.pomoWork || 50, 'work'), 60); } },
+    { t: 'Add a subject', k: 'new subject add', f: () => { go('subjects'); setTimeout(() => subjectModal(), 60); } },
+    { t: 'Add a mock score', k: 'mock test score add', f: () => { go('mocks'); setTimeout(() => mockModal(), 60); } },
+    { t: 'Add a plan task', k: 'task todo plan add', f: () => { go('dashboard'); setTimeout(() => planModal(), 60); } },
+    { t: 'Toggle theme', k: 'dark light theme', f: () => { S.settings.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; applyTheme(); save(); } },
+    { t: 'Export backup (JSON)', k: 'export backup save download', f: doExport },
+    { t: 'Export schedule (.ics)', k: 'calendar ics google', f: icsExport },
+    { t: 'Share progress card (PNG)', k: 'share image png card', f: shareCard },
+    { t: 'Sync to GitHub gist', k: 'sync gist push cloud', f: gistPush },
+  ];
+}
+let palIdx = 0;
+function openPalette() {
+  openModal(`<div class="pal">
+    <input class="input pal-in" id="pal-q" placeholder="Type a command…" autocomplete="off">
+    <div class="pal-list" id="pal-list"></div>
+    <div class="tiny muted pal-foot">↑↓ to move · ↵ to run · esc to close</div>
+  </div>`);
+  const q = $('#pal-q');
+  const draw = () => {
+    const s = q.value.trim().toLowerCase();
+    const list = commands().filter(c => !s || (c.t + ' ' + c.k).toLowerCase().includes(s));
+    palIdx = clamp(palIdx, 0, Math.max(0, list.length - 1));
+    $('#pal-list').innerHTML = list.length
+      ? list.map((c, i) => `<button class="pal-i${i === palIdx ? ' on' : ''}" data-action="pal-run" data-t="${esc(c.t)}">${esc(c.t)}</button>`).join('')
+      : '<div class="pal-i muted">No command matches.</div>';
+  };
+  q.addEventListener('input', () => { palIdx = 0; draw(); });
+  q.addEventListener('keydown', e => {
+    const list = commands().filter(c => { const s = q.value.trim().toLowerCase(); return !s || (c.t + ' ' + c.k).toLowerCase().includes(s); });
+    if (e.key === 'ArrowDown') { e.preventDefault(); palIdx = (palIdx + 1) % Math.max(1, list.length); draw(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); palIdx = (palIdx - 1 + list.length) % Math.max(1, list.length); draw(); }
+    else if (e.key === 'Enter') { e.preventDefault(); const c = list[palIdx]; if (c) { closeModal(); c.f(); } }
+  });
+  draw();
+}
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); return; }
+  if (e.target && /input|select|textarea/i.test(e.target.tagName)) return;
+  if (e.key === '/') { e.preventDefault(); openPalette(); }
+  const map = { d: 'dashboard', s: 'subjects', p: 'planner', i: 'insights', l: 'log', m: 'mocks', ',': 'settings' };
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && map[e.key.toLowerCase()]) go(map[e.key.toLowerCase()]);
+});
+
+/* ============================================================
+   Insights view
+   ============================================================ */
+function burnChart(b) {
+  const w = 760, h = 260, pl = 46, pr = 18, pt = 16, pb = 30;
+  const t0 = parseISO(b.start).getTime();
+  const endIso = (b.projEnd && parseISO(b.projEnd) > parseISO(b.target)) ? b.projEnd : b.target;
+  const t1 = Math.max(parseISO(endIso).getTime(), parseISO(b.today).getTime() + DAY);
+  const ymax = Math.max(10, b.startRem);
+  const X = iso => pl + (w - pl - pr) * clamp((parseISO(iso).getTime() - t0) / Math.max(1, t1 - t0), 0, 1);
+  const Y = v => pt + (h - pt - pb) * (1 - clamp(v / ymax, 0, 1));
+  let grid = '';
+  for (let g = 0; g <= 4; g++) {
+    const v = ymax * g / 4, y = Y(v);
+    grid += `<line x1="${pl}" y1="${y.toFixed(1)}" x2="${w - pr}" y2="${y.toFixed(1)}" class="mg"/><text x="${pl - 7}" y="${(y + 3).toFixed(1)}" text-anchor="end" class="mct">${Math.round(v)}</text>`;
+  }
+  const ideal = `M${X(b.start).toFixed(1)},${Y(b.startRem).toFixed(1)} L${X(b.target).toFixed(1)},${Y(0).toFixed(1)}`;
+  const act = b.pts.map(p => `${X(p.iso).toFixed(1)},${Y(p.rem).toFixed(1)}`).join(' ');
+  const projLine = b.projEnd
+    ? `<line x1="${X(b.today).toFixed(1)}" y1="${Y(b.curRem).toFixed(1)}" x2="${X(b.projEnd).toFixed(1)}" y2="${Y(0).toFixed(1)}" class="bd-proj"/>` : '';
+  const tgtX = X(b.target);
+  return `<svg class="mockchart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Burn-down chart">
+    ${grid}
+    <line x1="${tgtX.toFixed(1)}" y1="${pt}" x2="${tgtX.toFixed(1)}" y2="${h - pb}" class="bd-tgt"/>
+    <text x="${(tgtX - 6).toFixed(1)}" y="${pt + 12}" text-anchor="end" class="mct">lectures must end · ${fmtD(b.target)}</text>
+    <path d="${ideal}" class="bd-ideal"/>
+    ${projLine}
+    <polyline points="${act}" class="ml"/>
+    <circle cx="${X(b.today).toFixed(1)}" cy="${Y(b.curRem).toFixed(1)}" r="5" class="md cse"/>
+    <text x="${pl}" y="${h - 8}" class="mct">${fmtD(b.start)}</text>
+    <text x="${w - pr}" y="${h - 8}" text-anchor="end" class="mct">${fmtD(endIso)}</text>
+  </svg>
+  <div class="frow g8 wrap tiny muted mt6">
+    <span class="schip"><i style="background:var(--acc)"></i>actual lectures left</span>
+    <span class="schip"><i style="background:var(--faint)"></i>ideal pace</span>
+    ${b.projEnd ? `<span class="schip"><i style="background:var(--warn)"></i>your 14-day pace → ${fmtD(b.projEnd)}</span>` : ''}
+  </div>`;
+}
+
+function readyGauge(score) {
+  const r = 66, c = 2 * Math.PI * r;
+  const v = clamp(score / 100, 0, 1);
+  const off = c * (1 - Math.max(v, .012));   // always show a sliver, even at 0
+  const col = score >= 70 ? '#3DDC97' : score >= 45 ? '#FFC554' : '#FF7A88';
+  return `<div class="gauge">
+    <svg viewBox="0 0 160 160" preserveAspectRatio="xMidYMid meet">
+      <circle cx="80" cy="80" r="${r}" class="gauge-track" stroke-width="13"/>
+      <circle cx="80" cy="80" r="${r}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 80 80)"
+        style="transition:stroke-dashoffset .6s cubic-bezier(.22,1,.36,1)"/>
+    </svg>
+    <div class="gauge-lb"><b class="disp">${Math.round(score)}</b><span>/ 100</span></div>
+  </div>`;
+}
+
+function renderInsights() {
+  const el = $('#view-insights');
+  const p = pacing();
+  const rd = readiness();
+  const roi = roiList();
+  const ov = overlap();
+  const b = p ? burndown() : null;
+  const dbt = debtState();
+  const weak = weakSubjects();
+
+  const partRows = rd.parts.map(pt => `
+    <div class="ins-row">
+      <span class="ins-lb">${pt.label}<em class="tiny muted"> · ${Math.round(pt.w * 100)}%</em></span>
+      <span class="ins-v">${Math.round(pt.v * 100)}<span class="tiny muted">%</span></span>
+      <span class="ins-bar">${bar(pt.v, pt.v >= .7 ? 'var(--ok)' : pt.v >= .4 ? 'var(--warn)' : 'var(--bad)')}</span>
+    </div>`).join('');
+
+  const topRoi = roi.filter(r => !r.done).slice(0, 8);
+  const maxRoi = topRoi.length ? Math.max(...topRoi.map(r => r.roi === Infinity ? 0 : r.roi)) : 1;
+  const roiRows = topRoi.map(r => `
+    <div class="ins-row">
+      <span class="ins-lb">${esc(r.s.name)}<em class="tiny muted"> · ${r.left.toFixed(1)} marks left · ${fmtH(r.remH)}</em></span>
+      <span class="ins-v">${r.roi.toFixed(2)}<span class="tiny muted"> mk/h</span></span>
+      <span class="ins-bar">${bar(maxRoi > 0 ? r.roi / maxRoi : 0, r.s.color)}</span>
+    </div>`).join('');
+
+  const proj = activeExamKeys().map(k => ({ k, pr: projection3(k) })).filter(x => x.pr);
+  const acc = accuracyStats(null);
+
+  const projCards = proj.length ? proj.map(x => `
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('trend')} Projected — ${EXAMS[x.k].label}</span><span class="badge b-${x.k}">${x.pr.n} mock${x.pr.n > 1 ? 's' : ''}</span></div>
+      <div class="kpi"><span class="kpi-num disp">AIR ~${fmtN(x.pr.rank)}</span><span class="kpi-sub">band ${fmtN(x.pr.lo)}–${fmtN(x.pr.hi)}</span></div>
+      <div class="small muted mt6">Last-3 average <b>${x.pr.marks.toFixed(1)}/100</b> → GATE score ≈ <b>${x.pr.gs}</b>. Trend since first mock: <b class="${x.pr.trend >= 0 ? 'ok-t' : 'bad-t'}">${x.pr.trend >= 0 ? '+' : ''}${x.pr.trend.toFixed(1)} marks</b>.</div>
+      <div class="tiny muted mt6">Rough heuristic from historical marks→rank patterns, not an official predictor. Treat the band, not the number.</div>
+    </div>`).join('')
+    : `<div class="card pad c6"><div class="card-h"><span class="card-t">${icon('trend')} Rank projection</span></div>
+       <p class="small muted">Log two or three mocks and this becomes a live rank band with a trend line.</p>
+       <button class="btn sm mt6" data-action="nav" data-view="mocks">Add a mock</button></div>`;
+
+  const accCard = acc ? `<div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('target')} Attempt strategy</span><span class="tiny muted">${acc.n} mock${acc.n > 1 ? 's' : ''} with attempt data</span></div>
+      <div class="statgrid">
+        <div class="stat"><b class="disp">${Math.round(acc.acc * 100)}%</b><span>accuracy</span></div>
+        <div class="stat"><b class="disp">${fmtN(acc.att)}</b><span>attempted</span></div>
+        <div class="stat"><b class="disp ${acc.negLoss > 3 ? 'bad-t' : ''}">−${acc.negLoss.toFixed(1)}</b><span>marks lost to negatives</span></div>
+      </div>
+      <p class="small muted mt6">${acc.acc >= .8
+        ? 'Accuracy is high — you can afford to attempt more. Under-attempting is costing you marks you already know.'
+        : acc.acc >= .65
+        ? 'Healthy accuracy. In the last 10 minutes, only attempt MCQs you can eliminate down to two options — the ⅓ negative eats coin flips.'
+        : 'Accuracy is low — you are guessing too much. Every wrong MCQ costs ⅓ mark; skipping costs zero. Tighten attempts before chasing volume.'}</p>
+    </div>` : `<div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('target')} Attempt strategy</span></div>
+      <p class="small muted">Add "attempted" and "correct" counts when logging a mock and Ascent will track your accuracy, and how many marks the ⅓ negative marking is costing you.</p></div>`;
+
+  const weakCard = weak.length ? `<div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('alert')} Weak areas from mocks</span></div>
+      <div class="frow wrap g8">${weak.slice(0, 8).map(x => `<span class="schip"><i style="background:${x.s.color}"></i>${esc(x.s.name)} <b>×${x.n}</b></span>`).join('')}</div>
+      <p class="tiny muted mt6">Flagged in your recent mocks — these get pushed into Today's plan automatically.</p>
+    </div>` : '';
+
+  const ovCard = ov ? `<div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('zap')} Two-paper overlap — what the second paper really costs</span></div>
+      <div class="grid" style="gap:12px">
+        <div class="c4"><div class="stat"><b class="disp">${fmtH(ov.totalCse)}</b><span>/day · CSE alone</span></div></div>
+        <div class="c4"><div class="stat"><b class="disp">${fmtH(ov.totalDa)}</b><span>/day · DA alone</span></div></div>
+        <div class="c4"><div class="stat"><b class="disp">${fmtH(ov.totalBoth)}</b><span>/day · both papers</span></div></div>
+      </div>
+      <p class="small mt6"><b>${Math.round(ov.sharePct * 100)}%</b> of your remaining syllabus (${fmtH(ov.shared)}) is shared between the two papers. Because of that overlap, adding GATE DA on top of CSE costs only <b>+${fmtH(ov.costOfDA)}/day</b> — not a second full prep. Dropping DA would free ${fmtH(ov.costOfDA)} a day; dropping CSE would free ${fmtH(ov.costOfCSE)}.</p>
+      <div class="tiny muted mt6">CSE-only work left: ${fmtH(ov.cseOnly)} · DA-only work left: ${fmtH(ov.daOnly)}</div>
+    </div>` : '';
+
+  const dbtCard = dbt.ready ? `<div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('clock')} Study debt</span>
+        <span class="badge ${dbt.debt <= 0 ? 's-ok' : dbt.debt < 10 ? 's-warn' : 's-bad'}">${dbt.debt <= 0 ? 'ahead' : 'behind'}</span></div>
+      <div class="kpi"><span class="kpi-num disp">${dbt.debt <= 0 ? '+' : '−'}${fmtH(Math.abs(dbt.debt))}</span><span class="kpi-sub">vs your plan over ${dbt.days} days</span></div>
+      <div class="small muted mt6">${dbt.debt <= 0
+        ? `You've banked ${fmtH(-dbt.debt)} more than planned. Adherence ${Math.round(dbt.adherence * 100)}% — spend the surplus on PYQs, not on skipping tomorrow.`
+        : `Recovery: add <b>${fmtH(Math.max(0, dbt.perDay))}/day</b> for the next ${dbt.window} days and the debt clears without touching your pace. Adherence so far: ${Math.round(dbt.adherence * 100)}%.`}</div>
+      <div class="tiny muted mt6">Planned ${fmtH(dbt.expected)} · logged ${fmtH(dbt.logged)}</div>
+    </div>` : '';
+
+  el.innerHTML = `<div class="vhead"><div><h1>Insights</h1><p class="vsub">Where you actually stand, and the single highest-leverage thing to do about it.</p></div>
+    <div class="vact"><button class="btn" data-action="share-card">${icon('spark')} Share card</button></div></div>
+  <div class="grid">
+    <div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('gauge')} Readiness score</span></div>
+      <div class="ready-wrap">
+        ${readyGauge(rd.score)}
+        <div class="ready-parts">${partRows}</div>
+      </div>
+      <p class="small mt6"><b>Biggest lever:</b> ${esc(rd.gap.label)} — ${esc(rd.gap.hint)}. ${rd.gap.key === 'cov' ? 'Lectures are still the bottleneck; protect lecture time above all.'
+        : rd.gap.key === 'pyq' ? 'You know more than you can prove. Push PYQs on completed subjects.'
+        : rd.gap.key === 'mock' ? (rd.hasMocks ? 'Mock scores are the weakest signal — analyse the last one before taking another.' : 'You have no mock data at all. Take one this week; a baseline beats a guess.')
+        : rd.gap.key === 'rev' ? 'Coverage without revision decays. Clear the revision queue on the dashboard.'
+        : 'Consistency is the gap — smaller sessions daily beat heroic weekends.'}</p>
+    </div>
+    ${dbtCard || `<div class="card pad c6">
+      <div class="card-h"><span class="card-t">${icon('clock')} Study debt</span><span class="badge s-warn">needs 3 logged days</span></div>
+      <div class="kpi"><span class="kpi-num disp">—</span><span class="kpi-sub">planned vs actual hours</span></div>
+      <div class="statgrid mt6">
+        <div class="stat"><b class="disp">${fmtH(avgDailyHours())}</b><span>planned / day</span></div>
+        <div class="stat"><b class="disp">${fmtH(recentPace(14).hrsPerDay)}</b><span>actual (14d avg)</span></div>
+        <div class="stat"><b class="disp">${streaks().daysLogged}</b><span>days logged</span></div>
+      </div>
+      <p class="small muted mt6">Log ${Math.max(0, 3 - streaks().daysLogged)} more day${Math.max(0, 3 - streaks().daysLogged) === 1 ? '' : 's'} and this starts bending your required pace — surplus credited back, deficit spread over 14 days.</p>
+      <div class="mt6"><button class="btn sm" data-action="nav" data-view="log">Log a day</button></div>
+    </div>`}
+    ${b ? `<div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('trend')} Burn-down — lectures remaining vs the ideal line</span>
+        <span class="tiny muted">${fmtN(b.curRem)} left${b.projEnd ? ` · at your pace: done ${fmtD(b.projEnd)}` : ''}</span></div>
+      ${burnChart(b)}</div>` : ''}
+    <div class="card pad c12">
+      <div class="card-h"><span class="card-t">${icon('zap')} Return on investment — marks per hour left</span></div>
+      ${topRoi.length ? roiRows : '<p class="small muted">Everything is finished. Enjoy it.</p>'}
+      ${topRoi.length ? `<p class="small mt6"><b>Next best move:</b> ${esc(topRoi[0].s.name)} — ${topRoi[0].left.toFixed(1)} marks still on the table for about ${fmtH(topRoi[0].remH)} of work (${topRoi[0].roi.toFixed(2)} marks/hour). ${topRoi.length > 1 ? `Lowest yield right now: ${esc(topRoi[topRoi.length - 1].s.name)} at ${topRoi[topRoi.length - 1].roi.toFixed(2)} marks/hour — don't start there.` : ''}</p>` : ''}
+      <div class="tiny muted mt6">Remaining hours = lectures left × ${S.settings.effMin} min, plus unsolved PYQs at ~4 min each (incl. analysis).</div>
+    </div>
+    ${ovCard}
+    ${projCards}
+    ${accCard}
+    ${weakCard}
+  </div>`;
+}
+
+/* ============================================================
+   Easy sync — a single link, no accounts, no tokens
+   The data is gzipped and base64'd into the URL *fragment*, which
+   browsers never send to any server. Send the link to yourself
+   (WhatsApp / email / AirDrop), open it on the other device, done.
+   ============================================================ */
+function b64enc(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64dec(str) {
+  const s = str.replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(s + '==='.slice((s.length + 3) % 4));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function packState() {
+  const json = JSON.stringify({ app: 'ascent-gate', version: 1, data: S });
+  const raw = new TextEncoder().encode(json);
+  if (typeof CompressionStream === 'undefined') return 'r' + b64enc(raw);
+  const cs = new CompressionStream('gzip');
+  const w = cs.writable.getWriter(); w.write(raw); w.close();
+  const buf = new Uint8Array(await new Response(cs.readable).arrayBuffer());
+  return 'z' + b64enc(buf);
+}
+async function unpackState(payload) {
+  const tag = payload[0], body = payload.slice(1);
+  const bytes = b64dec(body);
+  let json;
+  if (tag === 'z') {
+    if (typeof DecompressionStream === 'undefined') throw new Error('no gzip support');
+    const ds = new DecompressionStream('gzip');
+    const w = ds.writable.getWriter(); w.write(bytes); w.close();
+    json = await new Response(ds.readable).text();
+  } else json = new TextDecoder().decode(bytes);
+  const j = JSON.parse(json);
+  return j && j.data ? j.data : j;
+}
+function adoptState(d, msg) {
+  const base = defaultState();
+  S = { v: 1,
+    settings: Object.assign(base.settings, d.settings || {}),
+    subjects: Array.isArray(d.subjects) && d.subjects.length ? d.subjects : base.subjects,
+    logs: d.logs || {}, mocks: Array.isArray(d.mocks) ? d.mocks : [],
+    planChecks: d.planChecks || {}, planEdits: d.planEdits || {}, planRepeat: d.planRepeat || [],
+    paceHist: d.paceHist || {}, timer: null,
+    flags: Object.assign(base.flags, d.flags || {}, { welcome: false }) };
+  save(); applyTheme(); go('dashboard'); toast(msg || 'Synced — this device is up to date.');
+}
+async function syncLinkModal() {
+  let link = '', err = '';
+  try {
+    const payload = await packState();
+    link = location.origin + location.pathname + '#s=' + payload;
+    if (link.length > 60000) err = 'Your history is large, so this link is long — some chat apps may cut it. If the other device says the link is broken, use the backup file instead.';
+  } catch (e) { err = 'Could not build the link on this browser — use the backup file instead.'; }
+  openModal(`<div class="m-head"><span class="m-t">Sync to another device</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+    <p class="small muted" style="margin-bottom:12px">Copy this link and send it to yourself — WhatsApp, email, Notes, AirDrop, anything. Open it on your phone/laptop and Ascent will offer to load everything. Your data rides inside the link itself; it is never uploaded anywhere.</p>
+    ${link ? `<div class="field"><label>Your sync link</label><textarea class="input" id="sync-link" rows="3" readonly>${esc(link)}</textarea></div>` : ''}
+    ${err ? `<p class="tiny" style="color:var(--warn)">${err}</p>` : ''}
+    <div class="frow g8 wrap" style="margin-top:12px">
+      ${link ? `<button class="btn primary" data-action="sync-copy">${icon('check')} Copy link</button>` : ''}
+      ${link && navigator.share ? `<button class="btn" data-action="sync-share">${icon('up')} Share…</button>` : ''}
+      <button class="btn ghost" data-action="export">${icon('down')} Backup file instead</button>
+    </div>
+    <p class="tiny muted mt6">Anyone with the link can read your study data (subjects, hours, mock scores). Don't post it publicly.</p>`);
+}
+function syncPasteModal() {
+  openModal(`<div class="m-head"><span class="m-t">Load from a sync link</span><button class="icon-btn" data-action="modal-x" aria-label="Close">${icon('x')}</button></div>
+    <p class="small muted" style="margin-bottom:12px">Paste the link you sent yourself from the other device. (Or just open the link directly — this is only for when tapping it doesn't work.)</p>
+    <div class="field"><label>Sync link</label><textarea class="input" id="sync-paste" rows="3" placeholder="https://…#s=…"></textarea></div>
+    <div class="m-foot"><button class="btn ghost" data-action="modal-x">Cancel</button><button class="btn primary" data-action="sync-load">Load data</button></div>`);
+}
+async function loadFromText(txt) {
+  const m = /#s=([A-Za-z0-9\-_]+)/.exec(String(txt || '').trim());
+  if (!m) { toast("That doesn't look like an Ascent sync link."); return; }
+  try {
+    const d = await unpackState(m[1]);
+    closeModal();
+    confirmModal('Load this data?', 'Everything currently on this device will be replaced by the synced copy.', 'Load & replace',
+      () => adoptState(d), true);
+  } catch (e) { toast('That link is damaged or incomplete — try the backup file.'); }
+}
+async function checkSyncHash() {
+  const m = /^#s=([A-Za-z0-9\-_]+)$/.exec(location.hash || '');
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const d = await unpackState(m[1]);
+    const subs = Array.isArray(d.subjects) ? d.subjects.length : 0;
+    const logs = d.logs ? Object.keys(d.logs).length : 0;
+    confirmModal('Sync data found in this link',
+      `It contains <b>${subs} subjects</b>, <b>${logs} logged days</b> and <b>${(d.mocks || []).length} mocks</b>. Load it onto this device? Anything already here will be replaced.`,
+      'Load it', () => adoptState(d, 'Loaded — this device is in sync.'));
+  } catch (e) { toast('That sync link is damaged — ask the other device for a fresh one.'); }
+}
+</script>
+</body>
+</html>
