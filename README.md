@@ -10,7 +10,7 @@ A zero-dependency, offline-capable study system for GATE CSE + GATE DA aspirants
 2. Upload all five files to the repo root: `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`. Commit.
 3. **Settings → Pages** → Source: *Deploy from a branch* → Branch `main`, folder `/ (root)`. Save.
 
-Live at `https://<user>.github.io/<repo>/` in about a minute. On your phone, "Add to Home Screen" — it installs as a real app, works offline, and can send notifications.
+Live at `https://shhubham311.github.io/Ascent-Gate/` . On your phone, "Add to Home Screen" — it installs as a real app, works offline, and can send notifications.
 
 *(`index.html` alone still works on its own; without the other files you only lose install/offline.)*
 
