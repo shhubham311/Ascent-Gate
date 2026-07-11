@@ -140,6 +140,14 @@ img,svg{display:block}
 .c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}
 .c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
 
+/* Dashboard-only — Today's plan (8) + Streak (4) pair to fill a row exactly.
+   Kept separate from .c4/.c5/.c6/.c7 so no other view is affected. */
+.dash-plan{grid-column:span 8}
+.dash-streak{grid-column:span 4}
+@media (max-width:1180px){
+  .dash-plan,.dash-streak{grid-column:span 12}
+}
+
 /* ---------- cards ---------- */
 .card{
   background:var(--card);
@@ -702,7 +710,8 @@ html[data-theme="light"] .ph-seg.now span{color:#1a2033;text-shadow:none}
    Global overflow safety — no card, chart or label may ever
    push the layout wider than the screen, at any size.
    ============================================================ */
-html,body{max-width:100%;overflow-x:hidden}
+html{max-width:100%;overflow-x:hidden}
+body{max-width:100%}
 .app,.main,.view,.grid,.card{min-width:0;max-width:100%}
 svg,canvas,img{max-width:100%}
 .card svg{height:auto}
@@ -930,9 +939,13 @@ let saveT = null;
 function save() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
-    try { storage.set(JSON.stringify(S)); } catch (e) {}
-    const el = $('#save-dot');
-    if (el) { el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 900); }
+    try {
+      storage.set(JSON.stringify(S));
+      const el = $('#save-dot');
+      if (el) { el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 900); }
+    } catch (e) {
+      toast('Could not save — your browser is blocking storage here (private/incognito mode, storage full, or an embedded preview). Open the deployed page in a normal browser tab.');
+    }
   }, 200);
 }
 
@@ -1563,7 +1576,7 @@ function renderDashboard() {
     <div class="tiny muted mt6">${p.phase.mocksWk}× ${p.phase.mockType}${p.phase.mocksWk > 1 ? 's' : ''} per week</div></div>` : '';
 
   const st = streaks();
-  const streakCard = `<div class="card pad c4">
+  const streakCard = `<div class="card pad dash-streak">
     <div class="card-h"><span class="card-t">${icon('flame')} Streak</span><span class="tiny muted">best ${st.best}d</span></div>
     <div class="kpi"><span class="kpi-num disp">${st.cur}</span><span class="kpi-sub">day${st.cur === 1 ? '' : 's'} in a row</span></div>
     ${weekBars()}
@@ -1571,7 +1584,7 @@ function renderDashboard() {
 
   const plan = todaysPlan();
   const checks = planChecksToday();
-  const planCard = `<div class="card pad c7">
+  const planCard = `<div class="card pad dash-plan">
     <div class="card-h"><span class="card-t">${icon('spark')} Today's plan</span>
       <span class="frow g8">
         ${plan.edited ? `<button class="btn sm ghost" data-action="plan-reset">${icon('rotate')} Reset</button>` : ''}
@@ -1593,7 +1606,7 @@ function renderDashboard() {
     <div class="tiny muted mt6">${fmtDY(todayISO())} · auto-built from your phase, progress and weightage. Edit or delete anything — changes apply to today; tick <b>repeat daily</b> to keep a task on every future day too.</div></div>`;
 
   const tl = S.logs[todayISO()] || {};
-  const quickCard = `<div class="card pad c5">
+  const quickCard = `<div class="card pad c4">
     <div class="card-h"><span class="card-t">${icon('cal')} Log today</span>${hasLog(todayISO()) ? '<span class="badge s-ok">logged</span>' : ''}</div>
     <form id="quick-log" class="qform">
       <div class="field"><label>Hours</label><input class="input" name="hours" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="${tl.hours ?? ''}" placeholder="0"></div>
